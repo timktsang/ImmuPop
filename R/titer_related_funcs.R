@@ -24,7 +24,7 @@ weighted_gmt <- function(resampled_df, age_prop) {
     geo_mean(agegp_resampled_titer)
   })
 
-  weighted_gmt_value <- sum(geo_means * age_prop)
+  weighted_gmt_value <- exp(sum(age_prop * log(geo_means)))
   return(weighted_gmt_value)
 }
 
