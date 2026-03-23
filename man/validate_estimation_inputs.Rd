@@ -31,6 +31,6 @@ Invisible TRUE if all checks pass.
 }
 \description{
 Internal function that checks all inputs before running estimation.
-Called at the start of \code{\link{ImmuPop_timet_est}}.
+Called at the start of \code{\link{ImmuPop_est_timepoint}}.
 }
 \keyword{internal}

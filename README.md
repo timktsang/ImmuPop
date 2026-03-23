@@ -11,7 +11,7 @@
 ## Features
 
 - **Four immunity estimators** — GMT, proportion seropositive (titer >= 10), population immunity, and relative reduction in R0
-- **Three estimation modes** — single time point (`ImmuPop_timet_est`), all time points (`ImmuPop_allt_est`), and baseline pre-epidemic (`ImmuPop_bsl_est`)
+- **Three estimation modes** — single time point (`ImmuPop_est_timepoint`), time series (`ImmuPop_est_timeseries`), and pre-epidemic baseline by epidemic group (`ImmuPop_est_baseline`)
 - **Age-structured framework** — age-specific protection curves, population proportions, and contact matrices
 - **Publication-ready plots** — titer jitter plots with GMT/CI, titer distributions, immunity dot-and-whisker charts, baseline comparisons
 - **Flexible age grouping** — user-defined age cuts via `generate_data()`
@@ -42,7 +42,7 @@ protect_a      <- c(0.1, 0.2, 0.3, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8)
 
 # Estimate immunity at a single time point
 data_t <- df[df$time == 2, ]
-result <- ImmuPop_timet_est(data_t, protect_c, protect_a,
+result <- ImmuPop_est_timepoint(data_t, protect_c, protect_a,
                             age_prop, contact_matrix,
                             sim_num = 500, seed = 42)
 result
@@ -94,10 +94,10 @@ plot_estimates(result)
 
 ```r
 df_bsl  <- df[df$bsl == "yes", ]
-res_bsl <- ImmuPop_bsl_est(df_bsl, protect_c, protect_a,
+res_bsl <- ImmuPop_est_baseline(df_bsl, protect_c, protect_a,
                            age_prop, contact_matrix,
                            sim_num = 500, seed = 42)
-plot_baseline(res_bsl)
+plot_estimates(res_bsl)
 ```
 
 <img src="man/figures/baseline.png" width="650"/>
@@ -109,7 +109,7 @@ plot_baseline(res_bsl)
 Estimates immunity at every time point that contains all age groups:
 
 ```r
-res_all <- ImmuPop_allt_est(df, protect_c, protect_a,
+res_all <- ImmuPop_est_timeseries(df, protect_c, protect_a,
                             age_prop, contact_matrix,
                             sim_num = 500, seed = 42)
 head(res_all)
@@ -121,7 +121,7 @@ Compares baseline immunity across epidemic groups:
 
 ```r
 df_bsl  <- df[df$bsl == "yes", ]
-res_bsl <- ImmuPop_bsl_est(df_bsl, protect_c, protect_a,
+res_bsl <- ImmuPop_est_baseline(df_bsl, protect_c, protect_a,
                            age_prop, contact_matrix,
                            sim_num = 500, seed = 42)
 res_bsl

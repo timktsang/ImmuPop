@@ -8,18 +8,24 @@
   prop_5    = "Proportion seropositive (titer >= 10)"
 )
 
-#' Plot single time-point immunity estimates (forest plot)
+#' Plot immunity estimates (forest plot)
 #'
-#' Visualizes the four estimates returned by \code{\link{ImmuPop_timet_est}} as
-#' a forest plot. The three proportion-scale metrics (\code{pop_immun},
-#' \code{RR_R0}, \code{prop_5}) share a 0--1 x-axis; the geometric mean titer
-#' (\code{GMT}) is shown in a separate section with its own x-axis. Labels
-#' appear on the left, point estimates with 95\% CI bars in the center, and
-#' formatted values on the right.
+#' Visualizes estimates returned by any of the three estimation functions
+#' (\code{\link{ImmuPop_est_timepoint}}, \code{\link{ImmuPop_est_baseline}},
+#' \code{\link{ImmuPop_est_timeseries}}) as a forest plot.
 #'
-#' @param result Data frame returned by \code{\link{ImmuPop_timet_est}}. Must
+#' The function auto-detects the input type: if the data frame contains an
+#' \code{epi} or \code{time} column, rows are grouped by that variable under
+#' each estimator heading. The three proportion-scale metrics
+#' (\code{pop_immun}, \code{RR_R0}, \code{prop_5}) share a 0--1 x-axis;
+#' the geometric mean titer (\code{GMT}) is shown in a separate section
+#' with its own x-axis.
+#'
+#' @param result Data frame returned by \code{\link{ImmuPop_est_timepoint}},
+#'   \code{\link{ImmuPop_est_baseline}}, or \code{\link{ImmuPop_est_timeseries}}. Must
 #'   contain columns \code{estimator}, \code{value}, \code{CI_lwr},
-#'   \code{CI_upr}.
+#'   \code{CI_upr}. May also contain \code{epi} or \code{time} for grouped
+#'   display.
 #' @param file Optional file path (e.g. \code{"estimates.pdf"}). When
 #'   specified, the plot is written to this file and the device is closed
 #'   automatically.
@@ -33,8 +39,10 @@
 #' \donttest{
 #' data("ImmuPop_raw_data")
 #' df   <- generate_data(ImmuPop_raw_data, cut_age = c(0, 18, 100))
+#'
+#' # Single time point
 #' data_t <- df[df$time == 2, ]
-#' result <- ImmuPop_timet_est(
+#' result <- ImmuPop_est_timepoint(
 #'   df             = data_t,
 #'   protect_c      = c(0.1, 0.2, 0.3, 0.4, 0.5),
 #'   protect_a      = c(0.1, 0.2, 0.3, 0.4, 0.5),
@@ -43,6 +51,18 @@
 #'   sim_num        = 100, seed = 42
 #' )
 #' plot_estimates(result)
+#'
+#' # Baseline comparison across epidemics
+#' df_bsl <- df[df$bsl == "yes", ]
+#' result_bsl <- ImmuPop_est_baseline(
+#'   df_long_bsl    = df_bsl,
+#'   protect_c      = c(0.1, 0.2, 0.3, 0.4, 0.5),
+#'   protect_a      = c(0.1, 0.2, 0.3, 0.4, 0.5),
+#'   age_prop       = c(0.2, 0.8),
+#'   contact_matrix = matrix(c(22, 16, 28, 120), nrow = 2, byrow = TRUE),
+#'   sim_num        = 50, seed = 42
+#' )
+#' plot_estimates(result_bsl)
 #' }
 #' @export
 plot_estimates <- function(result,
@@ -50,57 +70,93 @@ plot_estimates <- function(result,
                            cex = 0.85, ...) {
   if (!all(c("estimator", "value", "CI_lwr", "CI_upr") %in% names(result)))
     stop("'result' must have columns: estimator, value, CI_lwr, CI_upr. ",
-         "Use the output of ImmuPop_timet_est().", call. = FALSE)
+         "Use the output of ImmuPop_est_timepoint(), ImmuPop_est_baseline(),",
+         "or ImmuPop_est_timeseries().", call. = FALSE)
 
-  # Estimator display labels
+  # Auto-detect grouping column
+  group_col <- NULL
+  group_label <- NULL
+  if ("epi" %in% names(result)) {
+    group_col <- "epi"
+    group_label <- "Epidemic"
+  } else if ("time" %in% names(result)) {
+    group_col <- "time"
+    group_label <- "Time"
+  }
+
+  # Estimator display labels and ordering
   prop_ests <- c("pop_immun", "RR_R0", "prop_5")
   est_labels <- c(
     pop_immun = "Population immunity",
     RR_R0     = "Relative reduction in R0",
-    prop_5    = "Proportion seropositive (>= 1:10)"
+    prop_5    = "Proportion seropositive (>= 1:10)",
+    GMT       = "Geometric mean titer"
   )
 
-  # Split into proportion vs titer groups
-  prop_data <- result[result$estimator %in% prop_ests, ]
-  prop_data <- prop_data[match(intersect(prop_ests, prop_data$estimator),
-                               prop_data$estimator), ]
-  gmt_data  <- result[result$estimator == "GMT", ]
-  has_prop  <- nrow(prop_data) > 0
-  has_gmt   <- nrow(gmt_data) > 0
+  # Which estimators are present
+  has_prop <- any(prop_ests %in% result$estimator)
+  has_gmt  <- "GMT" %in% result$estimator
+
+  # Group levels (if any)
+  groups <- if (!is.null(group_col)) sort(unique(result[[group_col]])) else NULL
+  n_groups <- if (!is.null(groups)) length(groups) else 1L
 
   # Build row structure: list of list(type, label, ...)
+  # type = "section" | "estimator" (sub-header) | "estimate" (data row)
   rows <- list()
+
+  .add_estimator_rows <- function(est, scale_group) {
+    sub <- result[result$estimator == est, ]
+    if (nrow(sub) == 0) return()
+
+    if (is.null(group_col)) {
+      # Ungrouped: estimator label is the data row
+      rows[[length(rows) + 1]] <<- list(
+        type = "estimate", group = scale_group,
+        label = est_labels[est], indent = 1,
+        value = sub$value[1],
+        lower = sub$CI_lwr[1],
+        upper = sub$CI_upr[1]
+      )
+    } else {
+      # Grouped: estimator label as sub-header, then one row per group
+      rows[[length(rows) + 1]] <<- list(
+        type = "subheader",
+        label = est_labels[est]
+      )
+      for (g in groups) {
+        row_g <- sub[sub[[group_col]] == g, ]
+        if (nrow(row_g) == 0) next
+        rows[[length(rows) + 1]] <<- list(
+          type = "estimate", group = scale_group,
+          label = paste0(group_label, " ", g), indent = 2,
+          value = row_g$value[1],
+          lower = row_g$CI_lwr[1],
+          upper = row_g$CI_upr[1]
+        )
+      }
+    }
+  }
+
   if (has_prop) {
     rows[[length(rows) + 1]] <- list(type = "section",
                                      label = "Proportion Estimates:")
-    for (i in seq_len(nrow(prop_data))) {
-      est <- prop_data$estimator[i]
-      rows[[length(rows) + 1]] <- list(
-        type = "estimate", group = "prop",
-        label = est_labels[est],
-        value = prop_data$value[i],
-        lower = prop_data$CI_lwr[i],
-        upper = prop_data$CI_upr[i]
-      )
+    for (est in intersect(prop_ests, result$estimator)) {
+      .add_estimator_rows(est, "prop")
     }
   }
   if (has_gmt) {
     rows[[length(rows) + 1]] <- list(type = "section", label = "Titer:")
-    rows[[length(rows) + 1]] <- list(
-      type = "estimate", group = "gmt",
-      label = "Geometric mean titer",
-      value = gmt_data$value[1],
-      lower = gmt_data$CI_lwr[1],
-      upper = gmt_data$CI_upr[1]
-    )
+    .add_estimator_rows("GMT", "gmt")
   }
   n_rows <- length(rows)
 
   # Axis ranges
   prop_xlim <- c(0, 1)
   if (has_gmt) {
-    gmt_upper <- max(gmt_data$CI_upr[1] * 1.15,
-                     gmt_data$value[1] * 1.3)
+    gmt_sub   <- result[result$estimator == "GMT", ]
+    gmt_upper <- max(max(gmt_sub$CI_upr, na.rm = TRUE) * 1.15,
+                     max(gmt_sub$value, na.rm = TRUE) * 1.3)
     gmt_xlim  <- c(0, gmt_upper)
   }
 
@@ -147,7 +203,8 @@ plot_estimates <- function(result,
     y_pos[i] <- cur_y
     row <- rows[[i]]
     if (row$type == "estimate") {
-      is_last <- (i == n_rows) || (rows[[i + 1]]$type == "section")
+      is_last <- (i == n_rows) ||
+        (rows[[i + 1]]$type == "section")
       if (is_last) {
         axis_y[[row$group]] <- cur_y - 0.7
         cur_y <- cur_y - 1.5
@@ -187,9 +244,18 @@ plot_estimates <- function(result,
       graphics::text(label_x + 0.3, y, row$label,
                      adj = 0, font = 2, cex = cex)
 
-    } else if (row$type == "estimate") {
-      # Label (indented)
+    } else if (row$type == "subheader") {
       graphics::text(label_x + 1.5, y, row$label,
+                     adj = 0, font = 2, cex = cex * 0.95)
+
+    } else if (row$type == "estimate") {
+      # Label (indented based on grouped vs ungrouped)
+      indent_x <- if (!is.null(row$indent) && row$indent == 2) {
+        label_x + 3.0
+      } else {
+        label_x + 1.5
+      }
+      graphics::text(indent_x, y, row$label,
                      adj = 0, font = 1, cex = cex)
 
       # Point estimate and CI bar
@@ -228,90 +294,6 @@ plot_estimates <- function(result,
                         numeric(1))
     graphics::axis(1, at = ticks_x, labels = ticks_val,
                    pos = axis_y[["gmt"]], cex.axis = cex * 0.85)
-  }
-
-  invisible(NULL)
-}
-
-#' Plot baseline estimates by epidemic group
-#'
-#' Visualizes estimates from \code{\link{ImmuPop_bsl_est}} as a dot-and-whisker
-#' chart, comparing epidemic groups for each selected estimator.
-#'
-#' @param result Data frame returned by \code{\link{ImmuPop_bsl_est}}. Must
-#'   contain columns \code{estimator}, \code{epi}, \code{value},
-#'   \code{CI_lwr}, \code{CI_upr}.
-#' @param estimators Character vector of estimators to plot. Allowed values:
-#'   \code{"pop_immun"}, \code{"RR_R0"}, \code{"GMT"}, \code{"prop_5"}.
-#'   Default: all estimators present in \code{result}.
-#' @param col Colors for epi groups. Default: auto-assigned via
-#'   \code{rainbow()}.
-#' @param ... Additional graphical parameters passed to \code{plot()}.
-#' @return Invisible \code{NULL}. Called for its side effect of producing plots.
-#' @examples
-#' \donttest{
-#' data("ImmuPop_raw_data")
-#' df     <- generate_data(ImmuPop_raw_data, cut_age = c(0, 18, 100))
-#' df_bsl <- df[df$bsl == "yes", ]
-#' result <- ImmuPop_bsl_est(
-#'   df_long_bsl    = df_bsl,
-#'   protect_c      = c(0.1, 0.2, 0.3, 0.4, 0.5),
-#'   protect_a      = c(0.1, 0.2, 0.3, 0.4, 0.5),
-#'   age_prop       = c(0.2, 0.8),
-#'   contact_matrix = matrix(c(22, 16, 28, 120), nrow = 2, byrow = TRUE),
-#'   sim_num        = 50, seed = 42
-#' )
-#' plot_baseline(result)
-#' }
-#' @export
-plot_baseline <- function(result, estimators = NULL, col = NULL, ...) {
-  if (!all(c("estimator", "epi", "value", "CI_lwr", "CI_upr") %in% names(result)))
-    stop("'result' must have columns: estimator, epi, value, CI_lwr, CI_upr. ",
-         "Use the output of ImmuPop_bsl_est().", call. = FALSE)
-
-  all_ests <- c("pop_immun", "RR_R0", "GMT", "prop_5")
-  if (is.null(estimators)) {
-    estimators <- intersect(all_ests, result$estimator)
-  } else {
-    estimators <- match.arg(estimators, all_ests, several.ok = TRUE)
-  }
-
-  epi_groups <- sort(unique(result$epi))
-  n_epi      <- length(epi_groups)
-
-  if (is.null(col))
-    col <- grDevices::rainbow(n_epi, s = 0.7, v = 0.85)
-
-  n_panels <- length(estimators)
-  n_cols   <- if (n_panels <= 2) n_panels else 2
-  n_rows   <- ceiling(n_panels / n_cols)
-
-  op <- graphics::par(no.readonly = TRUE)
-  on.exit(graphics::par(op))
-  graphics::par(mfrow = c(n_rows, n_cols),
-                mar   = c(4.5, 4.5, 3, 1),
-                mgp   = c(2.5, 0.7, 0))
-
-  for (est in estimators) {
-    sub    <- result[result$estimator == est, ]
-    sub    <- sub[match(epi_groups, sub$epi), ]
-    ylab   <- .estimator_labels[est]
-    y_range <- range(c(sub$CI_lwr, sub$CI_upr), na.rm = TRUE)
-    y_pad  <- diff(y_range) * 0.12
-    ylim   <- c(max(0, y_range[1] - y_pad), y_range[2] + y_pad)
-
-    x <- seq_len(n_epi)
-    graphics::plot(x, sub$value,
-                   pch = 16, col = col, cex = 1.5,
-                   xlim = c(0.5, n_epi + 0.5), ylim = ylim,
-                   xaxt = "n", xlab = "Epidemic", ylab = ylab,
-                   main = ylab, ...)
-    graphics::axis(1, at = x, labels = as.character(epi_groups), las = 2)
-    for (i in seq_len(n_epi)) {
-      graphics::segments(x[i], sub$CI_lwr[i], x[i], sub$CI_upr[i],
-                         col = col[i], lwd = 2)
-    }
-    graphics::abline(h = 0, col = "grey80", lty = 2)
   }
 
   invisible(NULL)

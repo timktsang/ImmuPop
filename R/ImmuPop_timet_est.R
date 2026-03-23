@@ -36,7 +36,7 @@
 #' data_example_t <- data_example[data_example$time == 15, ]
 #'
 #' # Run the estimation function
-#' result <- ImmuPop_timet_est(
+#' result <- ImmuPop_est_timepoint(
 #'   df = data_example_t,
 #'   protect_c = protect_c,
 #'   protect_a = protect_a,
@@ -47,7 +47,7 @@
 #' )
 #'
 #' print(result)
-ImmuPop_timet_est <- function(df, protect_c, protect_a, age_prop, contact_matrix, sim_num = 500, seed = NULL) {
+ImmuPop_est_timepoint <- function(df, protect_c, protect_a, age_prop, contact_matrix, sim_num = 500, seed = NULL) {
   if (!is.null(seed)) set.seed(seed)
 
   # Input validation

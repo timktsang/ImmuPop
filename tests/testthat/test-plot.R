@@ -59,7 +59,7 @@ test_that("plot_estimates runs without error on timet result", {
 
   df     <- .get_plot_data()
   data_t <- df[df$time == 2, ]
-  result <- do.call(ImmuPop_timet_est, c(list(df = data_t), .plot_params))
+  result <- do.call(ImmuPop_est_timepoint, c(list(df = data_t), .plot_params))
 
   .with_temp_dev(
     expect_silent(
@@ -75,27 +75,23 @@ test_that("plot_estimates errors on wrong input", {
   expect_error(plot_estimates(data.frame(x = 1)), "estimator")
 })
 
-## plot_baseline --------------------------------------------------------------
+## plot_estimates with grouped data (bsl) -------------------------------------
 
-test_that("plot_baseline runs without error on bsl result", {
+test_that("plot_estimates runs without error on bsl result (grouped by epi)", {
   skip_if_not_installed("MCMCpack")
 
   df     <- .get_plot_data()
   df_bsl <- df[df$bsl == "yes", ]
-  result <- do.call(ImmuPop_bsl_est, c(list(df_long_bsl = df_bsl), .plot_params))
+  result <- do.call(ImmuPop_est_baseline, c(list(df_long_bsl = df_bsl), .plot_params))
 
   .with_temp_dev(
     expect_silent(
       withCallingHandlers(
-        plot_baseline(result),
+        plot_estimates(result),
         warning = function(w) invokeRestart("muffleWarning")
       )
     )
   )
-})
-
-test_that("plot_baseline errors on wrong input", {
-  expect_error(plot_baseline(data.frame(x = 1)), "epi")
 })
 
 ## plot_titer_jitter -----------------------------------------------------------

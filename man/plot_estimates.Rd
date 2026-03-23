@@ -2,14 +2,16 @@
 % Please edit documentation in R/plot.R
 \name{plot_estimates}
 \alias{plot_estimates}
-\title{Plot single time-point immunity estimates (forest plot)}
+\title{Plot immunity estimates (forest plot)}
 \usage{
 plot_estimates(result, file = NULL, width = 10, height = NULL, cex = 0.85, ...)
 }
 \arguments{
-\item{result}{Data frame returned by \code{\link{ImmuPop_timet_est}}. Must
+\item{result}{Data frame returned by \code{\link{ImmuPop_est_timepoint}},
+\code{\link{ImmuPop_est_baseline}}, or \code{\link{ImmuPop_est_timeseries}}. Must
 contain columns \code{estimator}, \code{value}, \code{CI_lwr},
-\code{CI_upr}.}
+\code{CI_upr}. May also contain \code{epi} or \code{time} for grouped
+display.}
 
 \item{file}{Optional file path (e.g. \code{"estimates.pdf"}). When
 specified, the plot is written to this file and the device is closed
@@ -28,19 +30,25 @@ number of rows.}
 Invisible \code{NULL}. Called for its side effect of producing plots.
 }
 \description{
-Visualizes the four estimates returned by \code{\link{ImmuPop_timet_est}} as
-a forest plot. The three proportion-scale metrics (\code{pop_immun},
-\code{RR_R0}, \code{prop_5}) share a 0--1 x-axis; the geometric mean titer
-(\code{GMT}) is shown in a separate section with its own x-axis. Labels
-appear on the left, point estimates with 95\% CI bars in the center, and
-formatted values on the right.
+Visualizes estimates returned by any of the three estimation functions
+(\code{\link{ImmuPop_est_timepoint}}, \code{\link{ImmuPop_est_baseline}},
+\code{\link{ImmuPop_est_timeseries}}) as a forest plot.
+
+The function auto-detects the input type: if the data frame contains an
+\code{epi} or \code{time} column, rows are grouped by that variable under
+each estimator heading. The three proportion-scale metrics
+(\code{pop_immun}, \code{RR_R0}, \code{prop_5}) share a 0--1 x-axis;
+the geometric mean titer (\code{GMT}) is shown in a separate section
+with its own x-axis.
 }
 \examples{
 \donttest{
 data("ImmuPop_raw_data")
 df   <- generate_data(ImmuPop_raw_data, cut_age = c(0, 18, 100))
+
+# Single time point
 data_t <- df[df$time == 2, ]
-result <- ImmuPop_timet_est(
+result <- ImmuPop_est_timepoint(
   df             = data_t,
   protect_c      = c(0.1, 0.2, 0.3, 0.4, 0.5),
   protect_a      = c(0.1, 0.2, 0.3, 0.4, 0.5),
@@ -49,5 +57,17 @@ result <- ImmuPop_timet_est(
   sim_num        = 100, seed = 42
 )
 plot_estimates(result)
+
+# Baseline comparison across epidemics
+df_bsl <- df[df$bsl == "yes", ]
+result_bsl <- ImmuPop_est_baseline(
+  df_long_bsl    = df_bsl,
+  protect_c      = c(0.1, 0.2, 0.3, 0.4, 0.5),
+  protect_a      = c(0.1, 0.2, 0.3, 0.4, 0.5),
+  age_prop       = c(0.2, 0.8),
+  contact_matrix = matrix(c(22, 16, 28, 120), nrow = 2, byrow = TRUE),
+  sim_num        = 50, seed = 42
+)
+plot_estimates(result_bsl)
 }
 }

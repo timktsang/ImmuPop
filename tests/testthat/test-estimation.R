@@ -20,16 +20,16 @@
   data_example[data_example$time == t, ]
 }
 
-## ImmuPop_timet_est -------------------------------------------------------
+## ImmuPop_est_timepoint -------------------------------------------------------
 
-test_that("ImmuPop_timet_est returns correct structure on shipped data", {
+test_that("ImmuPop_est_timepoint returns correct structure on shipped data", {
   skip_if_not_installed("MCMCpack")
 
   data_example <- .get_data()
   data_t <- .get_slice(data_example, t = 2)
   expect_gt(nrow(data_t), 0)
 
-  result <- ImmuPop_timet_est(
+  result <- ImmuPop_est_timepoint(
     df             = data_t,
     protect_c      = .test_params$protect_c,
     protect_a      = .test_params$protect_a,
@@ -49,25 +49,25 @@ test_that("ImmuPop_timet_est returns correct structure on shipped data", {
   expect_true(all(result$value <= result$CI_upr + 1e-10))
 })
 
-test_that("ImmuPop_timet_est is reproducible with seed", {
+test_that("ImmuPop_est_timepoint is reproducible with seed", {
   skip_if_not_installed("MCMCpack")
 
   data_example <- .get_data()
   data_t <- .get_slice(data_example, t = 2)
 
   args <- c(list(df = data_t), .test_params)
-  result1 <- do.call(ImmuPop_timet_est, args)
-  result2 <- do.call(ImmuPop_timet_est, args)
+  result1 <- do.call(ImmuPop_est_timepoint, args)
+  result2 <- do.call(ImmuPop_est_timepoint, args)
   expect_equal(result1, result2)
 })
 
-test_that("ImmuPop_timet_est values are in reasonable ranges", {
+test_that("ImmuPop_est_timepoint values are in reasonable ranges", {
   skip_if_not_installed("MCMCpack")
 
   data_example <- .get_data()
   data_t <- .get_slice(data_example, t = 2)
 
-  result <- ImmuPop_timet_est(
+  result <- ImmuPop_est_timepoint(
     df             = data_t,
     protect_c      = .test_params$protect_c,
     protect_a      = .test_params$protect_a,
@@ -93,7 +93,7 @@ test_that("ImmuPop_timet_est values are in reasonable ranges", {
   expect_lte(prop5$value, 1)
 })
 
-test_that("ImmuPop_timet_est handles equal age-group sizes (regression: sapply matrix collapse)", {
+test_that("ImmuPop_est_timepoint handles equal age-group sizes (regression: sapply matrix collapse)", {
   skip_if_not_installed("MCMCpack")
 
   # time == 19 in the real data has equal group sizes — this triggered the original sapply bug
@@ -101,7 +101,7 @@ test_that("ImmuPop_timet_est handles equal age-group sizes (regression: sapply m
   data_t <- .get_slice(data_example, t = 19)
   skip_if(nrow(data_t) == 0, "time == 19 not present in this dataset version")
 
-  result <- ImmuPop_timet_est(
+  result <- ImmuPop_est_timepoint(
     df             = data_t,
     protect_c      = .test_params$protect_c,
     protect_a      = .test_params$protect_a,
@@ -114,15 +114,15 @@ test_that("ImmuPop_timet_est handles equal age-group sizes (regression: sapply m
   expect_true(all(is.finite(result$value)))
 })
 
-## ImmuPop_bsl_est ---------------------------------------------------------
+## ImmuPop_est_baseline ---------------------------------------------------------
 
-test_that("ImmuPop_bsl_est returns results for each epi group", {
+test_that("ImmuPop_est_baseline returns results for each epi group", {
   skip_if_not_installed("MCMCpack")
 
   data_example <- .get_data()
   df_bsl <- data_example[data_example$bsl == "yes", ]
 
-  result <- ImmuPop_bsl_est(
+  result <- ImmuPop_est_baseline(
     df_long_bsl    = df_bsl,
     protect_c      = .test_params$protect_c,
     protect_a      = .test_params$protect_a,
@@ -138,14 +138,14 @@ test_that("ImmuPop_bsl_est returns results for each epi group", {
   expect_true(all(is.finite(result$value)))
 })
 
-## ImmuPop_allt_est --------------------------------------------------------
+## ImmuPop_est_timeseries --------------------------------------------------------
 
-test_that("ImmuPop_allt_est returns results for multiple time points on shipped data", {
+test_that("ImmuPop_est_timeseries returns results for multiple time points on shipped data", {
   skip_if_not_installed("MCMCpack")
 
   data_example <- .get_data()
 
-  result <- ImmuPop_allt_est(
+  result <- ImmuPop_est_timeseries(
     df_long        = data_example,
     protect_c      = .test_params$protect_c,
     protect_a      = .test_params$protect_a,

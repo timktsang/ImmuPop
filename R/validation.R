@@ -1,7 +1,7 @@
 #' Validate inputs for estimation functions
 #'
 #' Internal function that checks all inputs before running estimation.
-#' Called at the start of \code{\link{ImmuPop_timet_est}}.
+#' Called at the start of \code{\link{ImmuPop_est_timepoint}}.
 #'
 #' @param df Data frame with individual data.
 #' @param protect_c Numeric vector of protection effects for children.

@@ -1,10 +1,10 @@
 #' Estimate Immunity Across All Time Points
 #'
 #' This function estimates immunity at each time point using
-#' \code{\link{ImmuPop_timet_est}} and returns the combined results.
+#' \code{\link{ImmuPop_est_timepoint}} and returns the combined results.
 #' Only time points that contain all age groups are included.
 #'
-#' @name ImmuPop_allt_est
+#' @name ImmuPop_est_timeseries
 #' @param df_long A dataframe containing the data for all time points.
 #'   Must have been processed by \code{\link{generate_data}} first.
 #' @param protect_c Numeric vector indicating the protection effect for children.
@@ -16,7 +16,7 @@
 #' @return A dataframe with immunity estimates for each time point, including
 #'   the median and 95% CI.
 #' @export
-ImmuPop_allt_est <- function(df_long, protect_c, protect_a, age_prop, contact_matrix, sim_num = 500, seed = NULL) {
+ImmuPop_est_timeseries <- function(df_long, protect_c, protect_a, age_prop, contact_matrix, sim_num = 500, seed = NULL) {
   if (!is.null(seed)) set.seed(seed)
 
   count_agegps_num <- df_long %>%
@@ -30,7 +30,7 @@ ImmuPop_allt_est <- function(df_long, protect_c, protect_a, age_prop, contact_ma
     df <- df_long %>% filter(time == t)
 
     # Estimate immunity at each time point
-    result_t <- ImmuPop_timet_est(df,
+    result_t <- ImmuPop_est_timepoint(df,
       protect_c = protect_c, protect_a = protect_a,
       age_prop = age_prop, contact_matrix = contact_matrix,
       sim_num = sim_num

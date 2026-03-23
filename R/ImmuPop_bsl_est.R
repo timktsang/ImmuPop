@@ -3,7 +3,7 @@
 #' This function estimates immunity at the baseline period for different
 #' epidemic (`epi`) and circulating virus groups.
 #'
-#' @name ImmuPop_bsl_est
+#' @name ImmuPop_est_baseline
 #' @param df_long_bsl A dataframe containing baseline data (pre-epidemic),
 #'   including epidemic information as `epi`. Must have been processed by
 #'   \code{\link{generate_data}} first.
@@ -15,7 +15,7 @@
 #' @param seed Optional integer seed for reproducibility (default = NULL).
 #' @return A dataframe with baseline immunity estimates, including the median and 95% CI.
 #' @export
-ImmuPop_bsl_est <- function(df_long_bsl, protect_c, protect_a, age_prop, contact_matrix, sim_num = 500, seed = NULL) {
+ImmuPop_est_baseline <- function(df_long_bsl, protect_c, protect_a, age_prop, contact_matrix, sim_num = 500, seed = NULL) {
   if (!is.null(seed)) set.seed(seed)
 
   # Split dataframe by epidemic group (`epi`)
@@ -26,7 +26,7 @@ ImmuPop_bsl_est <- function(df_long_bsl, protect_c, protect_a, age_prop, contact
     myepi <- unique(df$epi)
 
     # Estimate immunity for each epidemic
-    estimate_res <- ImmuPop_timet_est(df,
+    estimate_res <- ImmuPop_est_timepoint(df,
       protect_c = protect_c, protect_a = protect_a, age_prop = age_prop,
       contact_matrix = contact_matrix, sim_num = sim_num
     )
