@@ -63,6 +63,8 @@ Replicates the standard HAI titer-by-age plot used in influenza seroprevalence p
 plot_titer_jitter(df, main = "HAI titer by age group", seed = 42)
 ```
 
+<img src="man/figures/titer_jitter.png" width="700"/>
+
 For multi-panel layouts (e.g. one panel per antigen), use `par(mfrow)` and call once per panel:
 
 ```r
@@ -78,11 +80,15 @@ plot_titer_jitter(df_antigen3, main = "C. Antigen 3", seed = 42)
 plot_titer_dist(df, main = "Titer distribution by age group")
 ```
 
+<img src="man/figures/titer_dist.png" width="700"/>
+
 ### Immunity estimates
 
 ```r
 plot_estimates(result)
 ```
+
+<img src="man/figures/estimates.png" width="650"/>
 
 ### Baseline comparison across epidemics
 
@@ -93,6 +99,8 @@ res_bsl <- ImmuPop_bsl_est(df_bsl, protect_c, protect_a,
                            sim_num = 500, seed = 42)
 plot_baseline(res_bsl)
 ```
+
+<img src="man/figures/baseline.png" width="650"/>
 
 ## Estimation modes
 
