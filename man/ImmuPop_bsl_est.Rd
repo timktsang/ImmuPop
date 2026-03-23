@@ -3,8 +3,21 @@
 \name{ImmuPop_bsl_est}
 \alias{ImmuPop_bsl_est}
 \title{Estimate Immunity at the Baseline Period}
+\usage{
+ImmuPop_bsl_est(
+  df_long_bsl,
+  protect_c,
+  protect_a,
+  age_prop,
+  contact_matrix,
+  sim_num = 500,
+  seed = NULL
+)
+}
 \arguments{
-\item{df_long_bsl}{A dataframe containing baseline data (pre-epidemic), including epidemic information as `epi`.}
+\item{df_long_bsl}{A dataframe containing baseline data (pre-epidemic),
+including epidemic information as `epi`. Must have been processed by
+\code{\link{generate_data}} first.}
 
 \item{protect_c}{Numeric vector indicating the protection effect for children.}
 
@@ -15,10 +28,13 @@
 \item{contact_matrix}{Numeric matrix of contact rates between age groups.}
 
 \item{sim_num}{The number of bootstrap simulations to run (default = 500).}
+
+\item{seed}{Optional integer seed for reproducibility (default = NULL).}
 }
 \value{
 A dataframe with baseline immunity estimates, including the median and 95% CI.
 }
 \description{
-This function estimates immunity at the baseline period for different epidemic (`epi`) and circulating virus groups.
+This function estimates immunity at the baseline period for different
+epidemic (`epi`) and circulating virus groups.
 }

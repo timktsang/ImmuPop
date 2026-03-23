@@ -1,22 +1,24 @@
-#' Estimate Population Immunity, Reduction in R0, GMT, and Proportion of Non-Naive Individuals
+#' Estimate Population Immunity, Reduction in R0, GMT, and Proportion of Seropositive Individuals
 #'
 #' This function estimates population immunity, the relative reduction in transmissibility (R0),
-#' the geometric mean titer (GMT), and the proportion of individuals with HI > 5 using bootstrap sampling
-#' and MCMC methods. It considers multiple age groups and various parameters related to immunity.
+#' the geometric mean titer (GMT), and the proportion of individuals with detectable antibody
+#' (raw_titer >= 10) using bootstrap sampling and MCMC-based Dirichlet estimation.
+#' It considers multiple age groups and various parameters related to immunity.
 #'
 #' @param df Data frame containing individual data, including age group and raw titer values.
-#' @param protect_c Numeric vector of protection effect for children.
-#' @param protect_a Numeric vector of protection effect for adults.
-#' @param age_prop Numeric vector representing age group proportions in the population.
-#' @param contact_matrix Numeric matrix of contact frequencies between age groups.
+#'   Must have been processed by \code{\link{generate_data}} first (requires \code{agegp1},
+#'   \code{raw_titer}, and \code{titer_level} columns).
+#' @param protect_c Numeric vector of protection effect for children (one value per titer level).
+#' @param protect_a Numeric vector of protection effect for adults (one value per titer level).
+#' @param age_prop Numeric vector representing age group proportions in the population (must sum to 1).
+#' @param contact_matrix Numeric square matrix of contact frequencies between age groups.
+#'   Dimensions must match the length of \code{age_prop}.
 #' @param sim_num Number of bootstrap simulations (default = 500).
-#' @return A dataframe with baseline immunity estimates, including the median and 95% CI.
-#' @import dplyr
-#' @import MCMCpack
-#' @importFrom stats quantile
+#' @param seed Optional integer seed for reproducibility (default = NULL).
+#' @return A dataframe with immunity estimates, including the median and 95% CI for
+#'   population immunity, R0 reduction, GMT, and seropositive proportion.
 #' @export
 #' @examples
-#' # Example usage of ImmuPop_timet_est
 #' data("ImmuPop_raw_data")
 #' data_example <- generate_data(ImmuPop_raw_data, cut_age = c(0, 18, 50, 100))
 #'
@@ -40,24 +42,25 @@
 #'   protect_a = protect_a,
 #'   age_prop = age_prop,
 #'   contact_matrix = contact_matrix,
-#'   sim_num = 100
+#'   sim_num = 100,
+#'   seed = 42
 #' )
 #'
-#' # Print the result
 #' print(result)
-ImmuPop_timet_est <- function(df, protect_c, protect_a, age_prop, contact_matrix, sim_num = 500) {
-  if (!requireNamespace("MCMCpack", quietly = TRUE)) {
-    stop("This function requires the 'MCMCpack' package. Please install it manually.")
-  }
+ImmuPop_timet_est <- function(df, protect_c, protect_a, age_prop, contact_matrix, sim_num = 500, seed = NULL) {
+  if (!is.null(seed)) set.seed(seed)
 
-  # Perform bootstrap sampling and calculate weighted GMT and proportion of HI > 5
+  # Input validation
+  validate_estimation_inputs(df, protect_c, protect_a, age_prop, contact_matrix, sim_num)
+
+  # Perform bootstrap sampling and calculate weighted GMT and proportion seropositive
   bootstrap_res <- replicate(sim_num, {
     resampled_list <- sapply(sort(unique(df$agegp1)), function(myagegp) {
       agegp1_titer <- df$raw_titer[df$agegp1 == myagegp]
       sample(agegp1_titer, size = length(agegp1_titer), replace = TRUE)
-    })
+    }, simplify = FALSE)
 
-    # Reshape the sampled df back into the original df frame structure
+    # Reshape the sampled data back into a data frame
     resampled_df <- data.frame(raw_titer = unlist(resampled_list),
                                agegp1 = rep(sort(unique(df$agegp1)), as.numeric(table(df$agegp1))))
 
@@ -71,25 +74,20 @@ ImmuPop_timet_est <- function(df, protect_c, protect_a, age_prop, contact_matrix
 
   colnames(bootstrap_res) <- c("GMT", "Prop_5")
 
-  # Calculate confidence intervals (95%) for GMT and Proportion of HI > 5
+  # Calculate confidence intervals (95%) for GMT and proportion seropositive
   gmt_ci <- quantile(bootstrap_res$GMT, c(0.025, 0.5, 0.975))
   prop5_ci <- quantile(bootstrap_res$Prop_5, c(0.025, 0.5, 0.975))
-
-  # Compute original weighted GMT and proportion of HI > 5
-  original_weighted_gmt <- weighted_gmt(df, age_prop)
-  original_prop5 <- weighted_prop_HImorethan5(df, age_prop)
 
   # Protection effects
   z1 <- protect_c
   z2 <- protect_a
-  k <- seq(1, length(z1), 1)
+  k <- seq_len(length(z1))
 
   agegp_num <- length(age_prop)
-  sim_num <- nrow(bootstrap_res)
 
   imp_my_virus <- matrix(NA, ncol = agegp_num, nrow = sim_num)
   table_matrix <- table(df$agegp1, df$titer_level) %>% as.matrix()
-  myvirus_age_titer_Freq <- fill_matrix(table_matrix, nrow = agegp_num, ncol = length(z1))
+  myvirus_age_titer_Freq <- fill_matrix(table_matrix, n_row = agegp_num, n_col = length(z1))
 
   # MCMC-based immune proportion estimation
   for (i in 1:sim_num) {
@@ -102,7 +100,6 @@ ImmuPop_timet_est <- function(df, protect_c, protect_a, age_prop, contact_matrix
       }
     }
   }
-
 
   # Compute population immunity and R0 reduction
   imp_my_virus_pop <- rowSums(imp_my_virus * age_prop)

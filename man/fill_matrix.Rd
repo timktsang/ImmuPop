@@ -2,24 +2,21 @@
 % Please edit documentation in R/fill_matrix.R
 \name{fill_matrix}
 \alias{fill_matrix}
-\title{Fill a new matrix with values from an original matrix based on matching column
-This function creates a new matrix of zeros with specified number of rows and columns,
-then fills it with values from the original matrix based on matching column}
+\title{Fill a new matrix with values from an original matrix based on matching columns}
 \usage{
-fill_matrix(nrow, ncol, original_matrix)
+fill_matrix(original_matrix, n_row, n_col)
 }
 \arguments{
-\item{nrow}{An integer specifying the number of rows in the new matrix.}
-
-\item{ncol}{An integer specifying the number of columns in the new matrix.}
-
 \item{original_matrix}{A matrix whose values are transferred to the new matrix.}
+
+\item{n_row}{An integer specifying the number of rows in the new matrix.}
+
+\item{n_col}{An integer specifying the number of columns in the new matrix.}
 }
 \value{
 A matrix with values from the original matrix placed in matching columns.
 }
 \description{
-Fill a new matrix with values from an original matrix based on matching column
 This function creates a new matrix of zeros with specified number of rows and columns,
-then fills it with values from the original matrix based on matching column
+then fills it with values from the original matrix based on matching column names.
 }

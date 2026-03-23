@@ -1,5 +1,3 @@
-^renv$
-^renv\.lock$
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^README\.Rmd$
@@ -9,3 +7,4 @@
 ^docs$
 ^pkgdown$
 ^codecov\.yml$
+Rplots\.pdf$

@@ -2,7 +2,7 @@
 % Please edit documentation in R/titer_related_funcs.R
 \name{weighted_prop_HImorethan5}
 \alias{weighted_prop_HImorethan5}
-\title{Calculate the weighted proportion of individuals with titer more than 5}
+\title{Calculate the weighted proportion of seropositive individuals}
 \usage{
 weighted_prop_HImorethan5(resampled_df, age_prop)
 }
@@ -12,8 +12,9 @@ weighted_prop_HImorethan5(resampled_df, age_prop)
 \item{age_prop}{A vector of age group proportions}
 }
 \value{
-The weighted proportion for the population
+The weighted proportion of seropositive individuals for the population
 }
 \description{
-This function calculates the weighted proportion of individuals with a titer value greater than or equal to 10.
+This function calculates the weighted proportion of individuals with
+detectable antibody (raw_titer >= 10, i.e., HAI titer >= 1:10).
 }

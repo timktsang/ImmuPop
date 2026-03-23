@@ -28,13 +28,14 @@ weighted_gmt <- function(resampled_df, age_prop) {
   return(weighted_gmt_value)
 }
 
-#' Calculate the weighted proportion of individuals with titer more than 5
+#' Calculate the weighted proportion of seropositive individuals
 #'
-#' This function calculates the weighted proportion of individuals with a titer value greater than or equal to 10.
+#' This function calculates the weighted proportion of individuals with
+#' detectable antibody (raw_titer >= 10, i.e., HAI titer >= 1:10).
 #'
 #' @param resampled_df A dataframe containing raw titer values and age group information
 #' @param age_prop A vector of age group proportions
-#' @return The weighted proportion for the population
+#' @return The weighted proportion of seropositive individuals for the population
 #' @export
 weighted_prop_HImorethan5 <- function(resampled_df, age_prop) {
   prop_eachage <- sapply(unique(resampled_df$agegp1), function(agegp) {

@@ -2,7 +2,7 @@
 % Please edit documentation in R/ImmuPop_timet_est.R
 \name{ImmuPop_timet_est}
 \alias{ImmuPop_timet_est}
-\title{Estimate Population Immunity, Reduction in R0, GMT, and Proportion of Non-Naive Individuals}
+\title{Estimate Population Immunity, Reduction in R0, GMT, and Proportion of Seropositive Individuals}
 \usage{
 ImmuPop_timet_est(
   df,
@@ -10,32 +10,39 @@ ImmuPop_timet_est(
   protect_a,
   age_prop,
   contact_matrix,
-  sim_num = 500
+  sim_num = 500,
+  seed = NULL
 )
 }
 \arguments{
-\item{df}{Data frame containing individual data, including age group and raw titer values.}
+\item{df}{Data frame containing individual data, including age group and raw titer values.
+Must have been processed by \code{\link{generate_data}} first (requires \code{agegp1},
+\code{raw_titer}, and \code{titer_level} columns).}
 
-\item{protect_c}{Numeric vector of protection effect for children.}
+\item{protect_c}{Numeric vector of protection effect for children (one value per titer level).}
 
-\item{protect_a}{Numeric vector of protection effect for adults.}
+\item{protect_a}{Numeric vector of protection effect for adults (one value per titer level).}
 
-\item{age_prop}{Numeric vector representing age group proportions in the population.}
+\item{age_prop}{Numeric vector representing age group proportions in the population (must sum to 1).}
 
-\item{contact_matrix}{Numeric matrix of contact frequencies between age groups.}
+\item{contact_matrix}{Numeric square matrix of contact frequencies between age groups.
+Dimensions must match the length of \code{age_prop}.}
 
 \item{sim_num}{Number of bootstrap simulations (default = 500).}
+
+\item{seed}{Optional integer seed for reproducibility (default = NULL).}
 }
 \value{
-A dataframe with baseline immunity estimates, including the median and 95% CI.
+A dataframe with immunity estimates, including the median and 95% CI for
+  population immunity, R0 reduction, GMT, and seropositive proportion.
 }
 \description{
 This function estimates population immunity, the relative reduction in transmissibility (R0),
-the geometric mean titer (GMT), and the proportion of individuals with HI > 5 using bootstrap sampling
-and MCMC methods. It considers multiple age groups and various parameters related to immunity.
+the geometric mean titer (GMT), and the proportion of individuals with detectable antibody
+(raw_titer >= 10) using bootstrap sampling and MCMC-based Dirichlet estimation.
+It considers multiple age groups and various parameters related to immunity.
 }
 \examples{
-# Example usage of ImmuPop_timet_est
 data("ImmuPop_raw_data")
 data_example <- generate_data(ImmuPop_raw_data, cut_age = c(0, 18, 50, 100))
 
@@ -59,9 +66,9 @@ result <- ImmuPop_timet_est(
   protect_a = protect_a,
   age_prop = age_prop,
   contact_matrix = contact_matrix,
-  sim_num = 100
+  sim_num = 100,
+  seed = 42
 )
 
-# Print the result
 print(result)
 }

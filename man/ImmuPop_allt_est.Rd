@@ -3,22 +3,39 @@
 \name{ImmuPop_allt_est}
 \alias{ImmuPop_allt_est}
 \title{Estimate Immunity Across All Time Points}
+\usage{
+ImmuPop_allt_est(
+  df_long,
+  protect_c,
+  protect_a,
+  age_prop,
+  contact_matrix,
+  sim_num = 500,
+  seed = NULL
+)
+}
 \arguments{
-\item{df_long}{A dataframe containing the data for all time points.}
+\item{df_long}{A dataframe containing the data for all time points.
+Must have been processed by \code{\link{generate_data}} first.}
 
 \item{protect_c}{Numeric vector indicating the protection effect for children.}
 
 \item{protect_a}{Numeric vector indicating the protection effect for adults.}
 
-\item{agep_prop}{Numeric vector of age group proportions in the population.}
+\item{age_prop}{Numeric vector of age group proportions in the population.}
 
 \item{contact_matrix}{Numeric matrix of contact rates between age groups.}
 
 \item{sim_num}{The number of bootstrap simulations to run (default = 500).}
+
+\item{seed}{Optional integer seed for reproducibility (default = NULL).}
 }
 \value{
-A dataframe with immunity estimates for each time point, including the median and 95% CI.
+A dataframe with immunity estimates for each time point, including
+  the median and 95% CI.
 }
 \description{
-This function estimates immunity at each time point using `ImmuPop_timet_est` and returns the results.
+This function estimates immunity at each time point using
+\code{\link{ImmuPop_timet_est}} and returns the combined results.
+Only time points that contain all age groups are included.
 }

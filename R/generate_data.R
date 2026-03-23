@@ -26,7 +26,6 @@
 #' processed_data <- generate_data(raw_data, cut_age = c(0, 18, 60, 100))
 #' print(processed_data)
 #'
-utils::globalVariables(c("age", "raw_titer"))
 generate_data <- function(ImmuPop_raw_data, cut_age) {
   data_example <- ImmuPop_raw_data %>%
     mutate(

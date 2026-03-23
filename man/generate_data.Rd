@@ -3,6 +3,9 @@
 \name{generate_data}
 \alias{generate_data}
 \title{Generate Example Data from Raw Immunity Data}
+\usage{
+generate_data(ImmuPop_raw_data, cut_age)
+}
 \arguments{
 \item{ImmuPop_raw_data}{A data frame containing individual raw data, which must have:
 - `age`: individual age

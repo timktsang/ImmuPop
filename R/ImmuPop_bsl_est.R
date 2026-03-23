@@ -1,21 +1,23 @@
 #' Estimate Immunity at the Baseline Period
 #'
-#' This function estimates immunity at the baseline period for different epidemic (`epi`) and circulating virus groups.
+#' This function estimates immunity at the baseline period for different
+#' epidemic (`epi`) and circulating virus groups.
+#'
 #' @name ImmuPop_bsl_est
-#' @param df_long_bsl A dataframe containing baseline data (pre-epidemic), including epidemic information as `epi`.
+#' @param df_long_bsl A dataframe containing baseline data (pre-epidemic),
+#'   including epidemic information as `epi`. Must have been processed by
+#'   \code{\link{generate_data}} first.
 #' @param protect_c Numeric vector indicating the protection effect for children.
 #' @param protect_a Numeric vector indicating the protection effect for adults.
 #' @param age_prop Numeric vector of age group proportions in the population.
 #' @param contact_matrix Numeric matrix of contact rates between age groups.
 #' @param sim_num The number of bootstrap simulations to run (default = 500).
+#' @param seed Optional integer seed for reproducibility (default = NULL).
 #' @return A dataframe with baseline immunity estimates, including the median and 95% CI.
-#' @import dplyr
-#' @import rlist
 #' @export
-#'
+ImmuPop_bsl_est <- function(df_long_bsl, protect_c, protect_a, age_prop, contact_matrix, sim_num = 500, seed = NULL) {
+  if (!is.null(seed)) set.seed(seed)
 
-utils::globalVariables(c("time", "estimator", "CI_lwr", "CI_upr", "epi", "value"))
-ImmuPop_bsl_est <- function(df_long_bsl, protect_c, protect_a, age_prop, contact_matrix, sim_num = 500) {
   # Split dataframe by epidemic group (`epi`)
   epi_list <- split(df_long_bsl, df_long_bsl$epi)
 
@@ -39,7 +41,7 @@ ImmuPop_bsl_est <- function(df_long_bsl, protect_c, protect_a, age_prop, contact
   })
 
   # Combine results from all epidemics
-  result <- list.rbind(result_all) %>%
+  result <- bind_rows(result_all) %>%
     dplyr::arrange(estimator, epi)
 
   return(result)
