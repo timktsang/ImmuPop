@@ -16,16 +16,12 @@ knitr::opts_chunk$set(
 # ImmuPop
 
 <!-- badges: start -->
-<!-- [![R-CMD-check](https://github.com/wjxiong5633/ImmunPop/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/wjxiong5633/ImmunPop/actions/workflows/R-CMD-check.yaml) -->
-<!-- [![Codecov test coverage](https://codecov.io/gh/wjxiong5633/ImmunPop/graph/badge.svg)](https://app.codecov.io/gh/wjxiong5633/ImmunPop) -->
-<!-- [![R-CMD-check](https://github.com/wjxiong5633/ImmunPop/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/wjxiong5633/ImmunPop/actions/workflows/R-CMD-check.yaml) -->
-<!-- [![Codecov test coverage](https://codecov.io/gh/wjxiong5633/ImmunPop/graph/badge.svg)](https://app.codecov.io/gh/wjxiong5633/ImmunPop) -->
 <!-- badges: end -->
 
 **ImmuPop** is an R package designed to estimate key population immunity metrics from individual serology data. The package provides the following estimators:
 
 - **Geometric Mean Titer (GMT)**
-- **Proportion of Non-Naïve Individuals**
+- **Proportion of Non-Naive Individuals**
 - **Proportion of Population Immune**
 - **Relative Reduction in Reproductive Number (R0)**
 
@@ -35,22 +31,20 @@ These estimators help assess population immunity and predict the impact of infec
 
 You can install the development version of **ImmuPop** from GitHub:
 
-```{r message=FALSE, warning=FALSE, paged.print=FALSE}
-#install.packages("devtools")
-devtools::install_github("wjxiong5633/ImmuPop")
+```r
+# install.packages("devtools")
+devtools::install_github("timktsang/ImmuPop")
 ```
 
 ## Example Usage
 
 ### Load Required Libraries
 
-Before using the package, load **ImmuPop** and other required libraries:
+Before using the package, load **ImmuPop**:
 
 ```{r message=FALSE, warning=FALSE}
 library(ImmuPop)
 library(dplyr)
-library(rlist)
-library(MCMCpack)
 ```
 
 ### Load Raw Data
@@ -83,7 +77,7 @@ age_prop <- c(0.2, 0.4, 0.4) # Adjust proportions according to your population
 
 #### Contact Matrix
 
-Define the **contact matrix**
+Define the **contact matrix**:
 
 ```{r}
 contact_matrix <- matrix(
@@ -92,21 +86,14 @@ contact_matrix <- matrix(
 )
 ```
 
-Or can use **[socialmixr](https://cran.r-project.org/web/packages/socialmixr/vignettes/socialmixr.html)** package to generate a contact matrix:
-
-
-```{r}
-library(socialmixr)
-data(polymod)
-contact_matrix(polymod, countries = "United Kingdom", age.limits = c(0, 1, 5, 15))
-```
+Or use the **[socialmixr](https://cran.r-project.org/web/packages/socialmixr/vignettes/socialmixr.html)** package to generate a contact matrix.
 
 #### Protection Effects
 
 Define protection effects for children and adults based on **HAI titer levels** (e.g. 40% HI associated with 50% protection):
 
 ```{r}
-# each item of vector represent the protection of each titer level (e.g. 1-10 titer level)
+# each item of vector represents the protection of each titer level (e.g. 1-10 titer level)
 protect_child <- c(0.1, 0.2, 0.3, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8)
 protect_adult <- c(0.1, 0.2, 0.3, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8)
 ```
@@ -128,7 +115,8 @@ result <- ImmuPop_timet_est(
   protect_a = protect_adult,
   age_prop = age_prop,
   contact_matrix = contact_matrix,
-  sim_num = 100
+  sim_num = 100,
+  seed = 42
 )
 
 knitr::kable(result, digits = 3, row.names = F)
@@ -145,10 +133,11 @@ est_res_all <- ImmuPop_allt_est(
   protect_a = protect_adult,
   age_prop = age_prop,
   contact_matrix = contact_matrix,
-  sim_num = 100
+  sim_num = 100,
+  seed = 42
 )
 
-knitr::kable(head(est_res_all,10), digits = 3, row.names = F)
+knitr::kable(head(est_res_all, 10), digits = 3, row.names = F)
 ```
 
 ### Estimating Baseline Population Immunity (Pre-Epidemic)
@@ -159,19 +148,20 @@ To estimate **baseline population immunity** before an epidemic:
 df_long_bsl <- data_example %>% filter(bsl == "yes")
 
 est_res_bsl <- ImmuPop_bsl_est(
-  df = df_long_bsl,
+  df_long_bsl = df_long_bsl,
   protect_c = protect_child,
   protect_a = protect_adult,
   age_prop = age_prop,
   contact_matrix = contact_matrix,
-  sim_num = 100
+  sim_num = 100,
+  seed = 42
 )
 
 knitr::kable(est_res_bsl, digits = 3, row.names = F)
 ```
 
-
 ## Citation
+
 To cite package **ImmuPop** in publications use:
 
 A Framework for Measuring Population Immunity Against Influenza Using Individual Antibody Titers.

@@ -2,19 +2,25 @@
 % Please edit documentation in R/plot.R
 \name{plot_estimates}
 \alias{plot_estimates}
-\title{Plot single time-point immunity estimates}
+\title{Plot single time-point immunity estimates (forest plot)}
 \usage{
-plot_estimates(result, col = "steelblue", main = "Immunity estimates", ...)
+plot_estimates(result, file = NULL, width = 10, height = NULL, cex = 0.85, ...)
 }
 \arguments{
 \item{result}{Data frame returned by \code{\link{ImmuPop_timet_est}}. Must
 contain columns \code{estimator}, \code{value}, \code{CI_lwr},
 \code{CI_upr}.}
 
-\item{col}{Color for points and CI bars. Default: \code{"steelblue"}.}
+\item{file}{Optional file path (e.g. \code{"estimates.pdf"}). When
+specified, the plot is written to this file and the device is closed
+automatically.}
 
-\item{main}{Title for the proportion panel. Default:
-\code{"Immunity estimates"}.}
+\item{width}{PDF width in inches (default 10).}
+
+\item{height}{PDF height in inches. If \code{NULL}, auto-sized from the
+number of rows.}
+
+\item{cex}{Base character expansion factor (default 0.85).}
 
 \item{...}{Additional graphical parameters passed to \code{plot()}.}
 }
@@ -23,10 +29,11 @@ Invisible \code{NULL}. Called for its side effect of producing plots.
 }
 \description{
 Visualizes the four estimates returned by \code{\link{ImmuPop_timet_est}} as
-a dot-and-whisker chart. The three proportion-scale metrics
-(\code{pop_immun}, \code{RR_R0}, \code{prop_5}) are shown in the left
-panel; the geometric mean titer (\code{GMT}) is shown separately on the
-right because it operates on a different scale.
+a forest plot. The three proportion-scale metrics (\code{pop_immun},
+\code{RR_R0}, \code{prop_5}) share a 0--1 x-axis; the geometric mean titer
+(\code{GMT}) is shown in a separate section with its own x-axis. Labels
+appear on the left, point estimates with 95\% CI bars in the center, and
+formatted values on the right.
 }
 \examples{
 \donttest{

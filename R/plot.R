@@ -8,20 +8,25 @@
   prop_5    = "Proportion seropositive (titer >= 10)"
 )
 
-#' Plot single time-point immunity estimates
+#' Plot single time-point immunity estimates (forest plot)
 #'
 #' Visualizes the four estimates returned by \code{\link{ImmuPop_timet_est}} as
-#' a dot-and-whisker chart. The three proportion-scale metrics
-#' (\code{pop_immun}, \code{RR_R0}, \code{prop_5}) are shown in the left
-#' panel; the geometric mean titer (\code{GMT}) is shown separately on the
-#' right because it operates on a different scale.
+#' a forest plot. The three proportion-scale metrics (\code{pop_immun},
+#' \code{RR_R0}, \code{prop_5}) share a 0--1 x-axis; the geometric mean titer
+#' (\code{GMT}) is shown in a separate section with its own x-axis. Labels
+#' appear on the left, point estimates with 95\% CI bars in the center, and
+#' formatted values on the right.
 #'
 #' @param result Data frame returned by \code{\link{ImmuPop_timet_est}}. Must
 #'   contain columns \code{estimator}, \code{value}, \code{CI_lwr},
 #'   \code{CI_upr}.
-#' @param col Color for points and CI bars. Default: \code{"steelblue"}.
-#' @param main Title for the proportion panel. Default:
-#'   \code{"Immunity estimates"}.
+#' @param file Optional file path (e.g. \code{"estimates.pdf"}). When
+#'   specified, the plot is written to this file and the device is closed
+#'   automatically.
+#' @param width PDF width in inches (default 10).
+#' @param height PDF height in inches. If \code{NULL}, auto-sized from the
+#'   number of rows.
+#' @param cex Base character expansion factor (default 0.85).
 #' @param ... Additional graphical parameters passed to \code{plot()}.
 #' @return Invisible \code{NULL}. Called for its side effect of producing plots.
 #' @examples
@@ -40,54 +45,189 @@
 #' plot_estimates(result)
 #' }
 #' @export
-plot_estimates <- function(result, col = "steelblue",
-                           main = "Immunity estimates", ...) {
+plot_estimates <- function(result,
+                           file = NULL, width = 10, height = NULL,
+                           cex = 0.85, ...) {
   if (!all(c("estimator", "value", "CI_lwr", "CI_upr") %in% names(result)))
     stop("'result' must have columns: estimator, value, CI_lwr, CI_upr. ",
          "Use the output of ImmuPop_timet_est().", call. = FALSE)
 
+  # Estimator display labels
   prop_ests <- c("pop_immun", "RR_R0", "prop_5")
-  has_prop  <- any(prop_ests %in% result$estimator)
-  has_gmt   <- "GMT" %in% result$estimator
-  n_panels  <- has_prop + has_gmt
+  est_labels <- c(
+    pop_immun = "Population immunity",
+    RR_R0     = "Relative reduction in R0",
+    prop_5    = "Proportion seropositive (>= 1:10)"
+  )
 
-  op <- graphics::par(no.readonly = TRUE)
-  on.exit(graphics::par(op))
-  graphics::par(mfrow = c(1, n_panels),
-                mar   = c(7, 4.5, 3, 1),
-                mgp   = c(2.5, 0.7, 0))
+  # Split into proportion vs titer groups
+  prop_data <- result[result$estimator %in% prop_ests, ]
+  prop_data <- prop_data[match(intersect(prop_ests, prop_data$estimator),
+                               prop_data$estimator), ]
+  gmt_data  <- result[result$estimator == "GMT", ]
+  has_prop  <- nrow(prop_data) > 0
+  has_gmt   <- nrow(gmt_data) > 0
 
+  # Build row structure: list of list(type, label, ...)
+  rows <- list()
   if (has_prop) {
-    sub    <- result[result$estimator %in% prop_ests, ]
-    sub    <- sub[match(intersect(prop_ests, sub$estimator), sub$estimator), ]
-    n      <- nrow(sub)
-    x      <- seq_len(n)
-    labels <- .estimator_labels[sub$estimator]
-    ylim   <- c(0, min(1, max(sub$CI_upr, na.rm = TRUE) * 1.15))
+    rows[[length(rows) + 1]] <- list(type = "section",
+                                     label = "Proportion Estimates:")
+    for (i in seq_len(nrow(prop_data))) {
+      est <- prop_data$estimator[i]
+      rows[[length(rows) + 1]] <- list(
+        type = "estimate", group = "prop",
+        label = est_labels[est],
+        value = prop_data$value[i],
+        lower = prop_data$CI_lwr[i],
+        upper = prop_data$CI_upr[i]
+      )
+    }
+  }
+  if (has_gmt) {
+    rows[[length(rows) + 1]] <- list(type = "section", label = "Titer:")
+    rows[[length(rows) + 1]] <- list(
+      type = "estimate", group = "gmt",
+      label = "Geometric mean titer",
+      value = gmt_data$value[1],
+      lower = gmt_data$CI_lwr[1],
+      upper = gmt_data$CI_upr[1]
+    )
+  }
+  n_rows <- length(rows)
 
-    graphics::plot(x, sub$value,
-                   pch = 16, col = col, cex = 1.5,
-                   xlim = c(0.5, n + 0.5), ylim = ylim,
-                   xaxt = "n", xlab = "", ylab = "Proportion",
-                   main = main, ...)
-    graphics::axis(1, at = x, labels = labels, las = 2, cex.axis = 0.85)
-    graphics::segments(x, sub$CI_lwr, x, sub$CI_upr, col = col, lwd = 2)
-    graphics::abline(h = 0, col = "grey80", lty = 2)
+  # Axis ranges
+  prop_xlim <- c(0, 1)
+  if (has_gmt) {
+    gmt_upper <- max(gmt_data$CI_upr[1] * 1.15,
+                     gmt_data$value[1] * 1.3)
+    gmt_xlim  <- c(0, gmt_upper)
   }
 
-  if (has_gmt) {
-    gmt  <- result[result$estimator == "GMT", ]
-    ylim <- c(0, max(gmt$CI_upr, na.rm = TRUE) * 1.15)
+  # Layout constants (user coordinates)
+  forest_left  <- 0
+  forest_right <- 8
+  label_x      <- forest_left - 8
+  right_edge   <- forest_right + 6
 
-    graphics::plot(1, gmt$value,
-                   pch = 16, col = col, cex = 1.5,
-                   xlim = c(0.5, 1.5), ylim = ylim,
-                   xaxt = "n", xlab = "",
-                   ylab = "Geometric mean titer",
-                   main = .estimator_labels["GMT"], ...)
-    graphics::axis(1, at = 1, labels = "GMT", las = 2, cex.axis = 0.85)
-    graphics::segments(1, gmt$CI_lwr, 1, gmt$CI_upr, col = col, lwd = 2)
-    graphics::abline(h = 0, col = "grey80", lty = 2)
+  # Map value to forest-area x-coordinate
+  .val_to_x <- function(val, group) {
+    lims <- if (group == "prop") prop_xlim else gmt_xlim
+    forest_left + (val - lims[1]) / diff(lims) *
+      (forest_right - forest_left)
+  }
+
+  # Vertical layout: rows are 1 unit; axes take 1.5 units
+  n_sections <- has_prop + has_gmt
+  total_units <- n_rows + n_sections * 1.5
+
+  # Open PDF device if file specified
+  opened_device <- FALSE
+  if (!is.null(file)) {
+    if (is.null(height)) height <- 0.55 * total_units + 2
+    grDevices::pdf(file, width = width, height = height)
+    opened_device <- TRUE
+  }
+
+  op <- graphics::par(no.readonly = TRUE)
+  on.exit({
+    graphics::par(op)
+    if (opened_device) grDevices::dev.off()
+  })
+  graphics::par(mar = c(0, 0, 0, 0))
+
+  # Assign y-positions top-down, inserting axis gaps after each section's
+  # last estimate row
+  y_pos  <- numeric(n_rows)
+  axis_y <- list()
+  cur_y  <- total_units
+
+  for (i in seq_len(n_rows)) {
+    cur_y <- cur_y - 1
+    y_pos[i] <- cur_y
+    row <- rows[[i]]
+    if (row$type == "estimate") {
+      is_last <- (i == n_rows) || (rows[[i + 1]]$type == "section")
+      if (is_last) {
+        axis_y[[row$group]] <- cur_y - 0.7
+        cur_y <- cur_y - 1.5
+      }
+    }
+  }
+
+  y_top    <- total_units + 1.5
+  y_bottom <- min(unlist(axis_y)) - 1.2
+
+  graphics::plot(0, 0, type = "n",
+                 xlim = c(label_x, right_edge),
+                 ylim = c(y_bottom, y_top),
+                 axes = FALSE, xlab = "", ylab = "", ...)
+
+  # Column headers
+  header_y <- total_units + 0.8
+  graphics::text(label_x + 0.3, header_y, "Estimator",
+                 adj = 0, font = 2, cex = cex)
+  graphics::text(right_edge - 0.3, header_y, "Estimate",
+                 adj = 1, font = 2, cex = cex)
+  graphics::text(right_edge - 0.3, header_y - 0.5, "(95% CI)",
+                 adj = 1, cex = cex * 0.85)
+
+  # Draw rows
+  for (i in seq_len(n_rows)) {
+    row <- rows[[i]]
+    y   <- y_pos[i]
+
+    # Alternating row shading
+    if (i %% 2 == 0) {
+      graphics::rect(label_x, y - 0.5, right_edge, y + 0.5,
+                     col = grDevices::rgb(0, 0, 0, 0.05), border = NA)
+    }
+
+    if (row$type == "section") {
+      graphics::text(label_x + 0.3, y, row$label,
+                     adj = 0, font = 2, cex = cex)
+
+    } else if (row$type == "estimate") {
+      # Label (indented)
+      graphics::text(label_x + 1.5, y, row$label,
+                     adj = 0, font = 1, cex = cex)
+
+      # Point estimate and CI bar
+      x_val <- .val_to_x(row$value, row$group)
+      x_lo  <- .val_to_x(row$lower, row$group)
+      x_hi  <- .val_to_x(row$upper, row$group)
+      graphics::segments(x_lo, y, x_hi, y, lwd = 1.5)
+      graphics::points(x_val, y, pch = 16, cex = 0.8)
+
+      # Formatted estimate text (right-aligned)
+      if (row$group == "prop") {
+        est_text <- sprintf("%.3f (%.3f, %.3f)",
+                            row$value, row$lower, row$upper)
+      } else {
+        est_text <- sprintf("%.1f (%.1f, %.1f)",
+                            row$value, row$lower, row$upper)
+      }
+      graphics::text(right_edge - 0.3, y, est_text,
+                     adj = 1, cex = cex * 0.9)
+    }
+  }
+
+  # Draw x-axes for each section
+  if (has_prop && !is.null(axis_y[["prop"]])) {
+    ticks_val <- seq(0, 1, by = 0.25)
+    ticks_x   <- vapply(ticks_val, function(v) .val_to_x(v, "prop"),
+                        numeric(1))
+    graphics::axis(1, at = ticks_x, labels = ticks_val,
+                   pos = axis_y[["prop"]], cex.axis = cex * 0.85)
+  }
+  if (has_gmt && !is.null(axis_y[["gmt"]])) {
+    ticks_val <- pretty(gmt_xlim, n = 5)
+    ticks_val <- ticks_val[ticks_val >= gmt_xlim[1] &
+                             ticks_val <= gmt_xlim[2]]
+    ticks_x   <- vapply(ticks_val, function(v) .val_to_x(v, "gmt"),
+                        numeric(1))
+    graphics::axis(1, at = ticks_x, labels = ticks_val,
+                   pos = axis_y[["gmt"]], cex.axis = cex * 0.85)
   }
 
   invisible(NULL)
