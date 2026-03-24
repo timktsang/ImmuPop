@@ -44,5 +44,5 @@ ImmuPop_est_baseline <- function(df_baseline, protect_c, protect_a, age_prop, co
   result <- bind_rows(result_all) %>%
     dplyr::arrange(estimator, epi)
 
-  return(result)
+  .new_ImmuPop_result(result, type = "baseline")
 }

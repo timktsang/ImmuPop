@@ -127,5 +127,5 @@ ImmuPop_est_timepoint <- function(df, protect_c, protect_a, age_prop, contact_ma
     CI_upr = c(pop_immune_prop[3], RR_R0[3], gmt_ci[3], prop5_ci[3])
   )
 
-  return(estimate_res)
+  .new_ImmuPop_result(estimate_res, type = "timepoint")
 }

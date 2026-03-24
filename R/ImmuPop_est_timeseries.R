@@ -45,5 +45,5 @@ ImmuPop_est_timeseries <- function(df_long, protect_c, protect_a, age_prop, cont
     dplyr::arrange(estimator, time) %>%
     dplyr::select(estimator, time, value, CI_lwr, CI_upr)
 
-  return(result)
+  .new_ImmuPop_result(result, type = "timeseries")
 }
