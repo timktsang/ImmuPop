@@ -75,14 +75,14 @@ test_that("plot_estimates errors on wrong input", {
   expect_error(plot_estimates(data.frame(x = 1)), "estimator")
 })
 
-## plot_estimates with grouped data (bsl) -------------------------------------
+## plot_estimates with grouped data (baseline) ---------------------------------
 
-test_that("plot_estimates runs without error on bsl result (grouped by epi)", {
+test_that("plot_estimates runs without error on baseline result (grouped by epi)", {
   skip_if_not_installed("MCMCpack")
 
   df     <- .get_plot_data()
-  df_bsl <- df[df$bsl == "yes", ]
-  result <- do.call(ImmuPop_est_baseline, c(list(df_long_bsl = df_bsl), .plot_params))
+  df_bl  <- df[df$baseline == "yes", ]
+  result <- do.call(ImmuPop_est_baseline, c(list(df_baseline = df_bl), .plot_params))
 
   .with_temp_dev(
     expect_silent(

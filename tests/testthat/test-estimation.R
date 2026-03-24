@@ -120,10 +120,10 @@ test_that("ImmuPop_est_baseline returns results for each epi group", {
   skip_if_not_installed("MCMCpack")
 
   data_example <- .get_data()
-  df_bsl <- data_example[data_example$bsl == "yes", ]
+  df_bsl <- data_example[data_example$baseline == "yes", ]
 
   result <- ImmuPop_est_baseline(
-    df_long_bsl    = df_bsl,
+    df_baseline    = df_bsl,
     protect_c      = .test_params$protect_c,
     protect_a      = .test_params$protect_a,
     age_prop       = .test_params$age_prop,

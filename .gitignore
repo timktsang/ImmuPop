@@ -4,3 +4,5 @@
 .Ruserdata
 docs
 Rplots.pdf
+ImmuPop.Rcheck/
+*.tar.gz

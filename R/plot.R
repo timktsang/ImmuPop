@@ -55,16 +55,16 @@
 #' plot_estimates(result)
 #'
 #' # Baseline comparison across epidemics
-#' df_bsl <- df[df$bsl == "yes", ]
-#' result_bsl <- ImmuPop_est_baseline(
-#'   df_long_bsl    = df_bsl,
+#' df_bl <- df[df$baseline == "yes", ]
+#' result_bl <- ImmuPop_est_baseline(
+#'   df_baseline    = df_bl,
 #'   protect_c      = c(0.1, 0.2, 0.3, 0.4, 0.5),
 #'   protect_a      = c(0.1, 0.2, 0.3, 0.4, 0.5),
 #'   age_prop       = c(0.2, 0.8),
 #'   contact_matrix = matrix(c(22, 16, 28, 120), nrow = 2, byrow = TRUE),
 #'   sim_num        = 50, seed = 42
 #' )
-#' plot_estimates(result_bsl)
+#' plot_estimates(result_bl)
 #' }
 #' @export
 plot_estimates <- function(result,
@@ -97,7 +97,7 @@ plot_estimates <- function(result,
   est_labels <- c(
     pop_immun = "Population immunity",
     RR_R0     = "Relative reduction in R0",
-    prop_5    = "Proportion seropositive (>= 1:10)",
+    prop_5    = "Prop. seropositive (\u2265 1:10)",
     GMT       = "Geometric mean titer"
   )
 
@@ -169,9 +169,10 @@ plot_estimates <- function(result,
   }
 
   # Layout constants (user coordinates)
-  forest_left  <- 0
-  forest_right <- 8
-  label_x      <- forest_left - 8
+  # Wider label area to prevent text overlapping forest lines
+  forest_left  <- 2
+  forest_right <- 10
+  label_x      <- forest_left - 10
   right_edge   <- forest_right + 6
 
   # Map value to forest-area x-coordinate

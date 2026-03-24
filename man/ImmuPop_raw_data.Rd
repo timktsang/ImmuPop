@@ -10,7 +10,7 @@ A data frame with columns:
   \item{uid}{Numeric, subject id.}
   \item{time}{Numeric, representing the time point.}
   \item{epi}{Character, epidemics}
-  \item{bsl}{Character, indicating baseline status ("yes" or "no").}
+  \item{baseline}{Character, indicating baseline status ("yes" or "no").}
   \item{raw_titer}{Numeric, raw titer values for the immunity estimation.}
   \item{age}{Numeric, age of subject.}
 }

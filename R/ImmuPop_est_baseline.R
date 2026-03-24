@@ -4,7 +4,7 @@
 #' epidemic (`epi`) and circulating virus groups.
 #'
 #' @name ImmuPop_est_baseline
-#' @param df_long_bsl A dataframe containing baseline data (pre-epidemic),
+#' @param df_baseline A dataframe containing baseline data (pre-epidemic),
 #'   including epidemic information as `epi`. Must have been processed by
 #'   \code{\link{generate_data}} first.
 #' @param protect_c Numeric vector indicating the protection effect for children.
@@ -15,11 +15,11 @@
 #' @param seed Optional integer seed for reproducibility (default = NULL).
 #' @return A dataframe with baseline immunity estimates, including the median and 95% CI.
 #' @export
-ImmuPop_est_baseline <- function(df_long_bsl, protect_c, protect_a, age_prop, contact_matrix, sim_num = 500, seed = NULL) {
+ImmuPop_est_baseline <- function(df_baseline, protect_c, protect_a, age_prop, contact_matrix, sim_num = 500, seed = NULL) {
   if (!is.null(seed)) set.seed(seed)
 
   # Split dataframe by epidemic group (`epi`)
-  epi_list <- split(df_long_bsl, df_long_bsl$epi)
+  epi_list <- split(df_baseline, df_baseline$epi)
 
   # Loop through each epidemic group to estimate immunity
   result_all <- lapply(epi_list, function(df) {

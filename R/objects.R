@@ -8,7 +8,7 @@
 #'   \item{uid}{Numeric, subject id.}
 #'   \item{time}{Numeric, representing the time point.}
 #'   \item{epi}{Character, epidemics}
-#'   \item{bsl}{Character, indicating baseline status ("yes" or "no").}
+#'   \item{baseline}{Character, indicating baseline status ("yes" or "no").}
 #'   \item{raw_titer}{Numeric, raw titer values for the immunity estimation.}
 #'   \item{age}{Numeric, age of subject.}
 #' }
@@ -17,7 +17,7 @@ ImmuPop_raw_data <- data.frame(
   uid = c(1001, 1001, 1002, 1002, 1003, 1003, 1004, 1004, 1005, 1005, 1006, 1006),
   time = c(1, 15, 1, 15, 1, 15, 801, 815, 801, 815, 801, 815),
   epi = factor(c(1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2)),
-  bsl = c("yes", "no", "yes", "no", "yes", "no", "yes", "no", "yes", "no", "yes", "no"),
+  baseline = c("yes", "no", "yes", "no", "yes", "no", "yes", "no", "yes", "no", "yes", "no"),
   raw_titer = c(5, 40, 10, 160, 10, 20, 5, 80, 10, 160, 20, 80),
   age = c(10, 10, 25, 25, 55, 55, 14, 14, 40, 40, 64, 64)
 )

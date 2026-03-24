@@ -1,4 +1,4 @@
-"uid","age","time","bsl","epi","raw_titer"
+"uid","age","time","baseline","epi","raw_titer"
 "1009-1",46,282,"yes","1",5
 "1014-0",12,282,"yes","1",5
 "1014-1",46,282,"yes","1",5

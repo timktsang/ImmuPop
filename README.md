@@ -93,11 +93,11 @@ plot_estimates(result)
 ### Baseline comparison across epidemics
 
 ```r
-df_bsl  <- df[df$bsl == "yes", ]
-res_bsl <- ImmuPop_est_baseline(df_bsl, protect_c, protect_a,
+df_bl  <- df[df$baseline == "yes", ]
+res_bl <- ImmuPop_est_baseline(df_bl, protect_c, protect_a,
                            age_prop, contact_matrix,
                            sim_num = 500, seed = 42)
-plot_estimates(res_bsl)
+plot_estimates(res_bl)
 ```
 
 <img src="man/figures/baseline.png" width="650"/>
@@ -120,7 +120,7 @@ plot_estimates(res_ts)
 | Function | Input | Groups by |
 |----------|-------|-----------|
 | `ImmuPop_est_timepoint()` | Single time point subset | — (ungrouped) |
-| `ImmuPop_est_baseline()` | Baseline samples (`bsl == "yes"`) | Epidemic (`epi`) |
+| `ImmuPop_est_baseline()` | Baseline samples (`baseline == "yes"`) | Epidemic (`epi`) |
 | `ImmuPop_est_timeseries()` | Full longitudinal data | Time point (`time`) |
 
 All three return a data frame with columns `estimator`, `value`, `CI_lwr`, `CI_upr` (plus `epi` or `time` for grouped modes), and all work with `plot_estimates()`.
@@ -132,7 +132,7 @@ The input data frame must contain these columns:
 | Column | Description |
 |--------|-------------|
 | `uid` | Individual identifier |
-| `bsl` | Baseline indicator (`"yes"` / `"no"`) |
+| `baseline` | Baseline indicator (`"yes"` / `"no"`) |
 | `epi` | Epidemic identifier (integer) |
 | `age` | Age in years |
 | `time` | Time point identifier |

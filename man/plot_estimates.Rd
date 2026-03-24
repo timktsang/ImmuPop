@@ -63,15 +63,15 @@ result <- ImmuPop_est_timepoint(
 plot_estimates(result)
 
 # Baseline comparison across epidemics
-df_bsl <- df[df$bsl == "yes", ]
-result_bsl <- ImmuPop_est_baseline(
-  df_long_bsl    = df_bsl,
+df_bl <- df[df$baseline == "yes", ]
+result_bl <- ImmuPop_est_baseline(
+  df_baseline    = df_bl,
   protect_c      = c(0.1, 0.2, 0.3, 0.4, 0.5),
   protect_a      = c(0.1, 0.2, 0.3, 0.4, 0.5),
   age_prop       = c(0.2, 0.8),
   contact_matrix = matrix(c(22, 16, 28, 120), nrow = 2, byrow = TRUE),
   sim_num        = 50, seed = 42
 )
-plot_estimates(result_bsl)
+plot_estimates(result_bl)
 }
 }

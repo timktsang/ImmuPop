@@ -37,11 +37,11 @@ test_that("generate_data preserves original columns", {
     uid = 1:3,
     age = c(10, 30, 50),
     raw_titer = c(10, 20, 40),
-    bsl = c("yes", "no", "yes")
+    baseline = c("yes", "no", "yes")
   )
   result <- generate_data(raw_data, cut_age = c(0, 18, 100))
 
-  expect_true(all(c("uid", "age", "raw_titer", "bsl", "agegp1", "titer_level") %in% names(result)))
+  expect_true(all(c("uid", "age", "raw_titer", "baseline", "agegp1", "titer_level") %in% names(result)))
 })
 
 test_that("generate_data handles boundary ages correctly", {
