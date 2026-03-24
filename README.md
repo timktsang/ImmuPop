@@ -82,15 +82,23 @@ plot_titer_dist(df, main = "Titer distribution by age group")
 
 <img src="man/figures/titer_dist.png" width="700"/>
 
-### Immunity estimates
+### Immunity estimates (single time point)
+
+Estimate population immunity from a single survey round — e.g. a cross-sectional serosurvey at one point in time. This gives a snapshot of how immune the population is right now.
 
 ```r
+data_t <- df[df$time == 2, ]
+result <- ImmuPop_est_timepoint(data_t, protect_c, protect_a,
+                            age_prop, contact_matrix,
+                            sim_num = 500, seed = 42)
 plot_estimates(result)
 ```
 
 <img src="man/figures/estimates.png" width="650"/>
 
 ### Baseline comparison across epidemics
+
+Compare pre-epidemic immunity across multiple epidemic waves — e.g. to assess whether the population started each flu season with different levels of protection. `ImmuPop_est_baseline()` runs the same estimation separately for each epidemic group, so you can see how starting immunity changed from one wave to the next.
 
 ```r
 df_bl  <- df[df$baseline == "yes", ]
@@ -104,7 +112,7 @@ plot_estimates(res_bl)
 
 ### Timeseries
 
-For time series results (many time points), `plot_estimates()` automatically switches to a multi-panel line plot with 95% CI ribbon. Gaps between survey rounds are detected and drawn as separate segments.
+Track how population immunity evolves over time across multiple survey rounds. For time series results (many time points), `plot_estimates()` automatically switches to a multi-panel line plot with 95% CI ribbon. Gaps between survey rounds are detected and drawn as separate segments.
 
 ```r
 res_ts <- ImmuPop_est_timeseries(df, protect_c, protect_a,
@@ -117,11 +125,11 @@ plot_estimates(res_ts)
 
 ## Estimation modes
 
-| Function | Input | Groups by |
-|----------|-------|-----------|
-| `ImmuPop_est_timepoint()` | Single time point subset | — (ungrouped) |
-| `ImmuPop_est_baseline()` | Baseline samples (`baseline == "yes"`) | Epidemic (`epi`) |
-| `ImmuPop_est_timeseries()` | Full longitudinal data | Time point (`time`) |
+| Function | Use case | Input | Groups by |
+|----------|----------|-------|-----------|
+| `ImmuPop_est_timepoint()` | Snapshot from one survey round | Single time point subset | — (ungrouped) |
+| `ImmuPop_est_baseline()` | Compare pre-epidemic immunity across waves | Baseline samples (`baseline == "yes"`) | Epidemic (`epi`) |
+| `ImmuPop_est_timeseries()` | Track immunity over time | Full longitudinal data | Time point (`time`) |
 
 All three return a data frame with columns `estimator`, `value`, `CI_lwr`, `CI_upr` (plus `epi` or `time` for grouped modes), and all work with `plot_estimates()`.
 

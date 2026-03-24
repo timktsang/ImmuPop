@@ -1,0 +1,172 @@
+---
+title: "Introduction to ImmuPop"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to ImmuPop}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
+)
+```
+
+## Overview
+
+ImmuPop estimates population-level immunity from individual antibody titer
+data using bootstrap sampling and MCMC-based Dirichlet estimation with
+age-structured contact matrices. The package produces four key metrics:
+
+- **Population immunity** — the effective immune proportion weighted by
+  age-specific contact patterns and protection curves.
+- **Relative reduction in R0** — how much transmission potential is reduced
+  relative to a fully susceptible population.
+- **Geometric mean titer (GMT)** — the population-weighted geometric mean
+  antibody titer.
+- **Proportion seropositive** — the proportion of individuals with
+  detectable antibody (titer ≥ 1:10).
+
+## Quick start
+
+```{r quickstart}
+library(ImmuPop)
+
+# Load bundled example data
+data("ImmuPop_raw_data")
+head(ImmuPop_raw_data)
+```
+
+The raw data must contain at least `age` and `raw_titer` columns. It may
+also include `time`, `epi` (epidemic identifier), and `baseline` columns
+for longitudinal and multi-epidemic analyses.
+
+### Step 1: Prepare data
+
+Use `generate_data()` to bin ages into groups and compute log-transformed
+titer levels:
+
+```{r prepare}
+df <- generate_data(ImmuPop_raw_data, cut_age = c(0, 18, 100))
+head(df)
+```
+
+### Step 2: Define population parameters
+
+ImmuPop requires three inputs describing the population:
+
+```{r params}
+# Age group proportions (must sum to 1, one per age group)
+age_prop <- c(0.2, 0.8)
+
+# Contact matrix between age groups (rows = contactors, cols = contactees)
+contact_matrix <- matrix(c(22, 16, 28, 120), nrow = 2, byrow = TRUE)
+
+# Protection curves: probability of protection at each titer level
+# (one value per titer level, from lowest to highest)
+protect_c <- c(0.1, 0.2, 0.3, 0.4, 0.5)  # children
+protect_a <- c(0.1, 0.2, 0.3, 0.4, 0.5)  # adults
+```
+
+### Step 3: Estimate immunity at a single time point
+
+```{r timepoint}
+# Subset to one time point
+data_t <- df[df$time == 2, ]
+
+result <- ImmuPop_est_timepoint(
+  df             = data_t,
+  protect_c      = protect_c,
+  protect_a      = protect_a,
+  age_prop       = age_prop,
+  contact_matrix = contact_matrix,
+  sim_num        = 200,
+  seed           = 42
+)
+result
+```
+
+### Step 4: Visualize results
+
+```{r plot-forest, fig.height=4}
+plot_estimates(result)
+```
+
+## Multi-epidemic baseline comparison
+
+When data span multiple epidemics, `ImmuPop_est_baseline()` estimates
+immunity at the pre-epidemic baseline for each epidemic:
+
+```{r baseline}
+df_bl <- df[df$baseline == "yes", ]
+
+result_bl <- ImmuPop_est_baseline(
+  df_baseline    = df_bl,
+  protect_c      = protect_c,
+  protect_a      = protect_a,
+  age_prop       = age_prop,
+  contact_matrix = contact_matrix,
+  sim_num        = 200,
+  seed           = 42
+)
+result_bl
+```
+
+```{r plot-baseline, fig.height=5}
+plot_estimates(result_bl)
+```
+
+## Time series estimation
+
+`ImmuPop_est_timeseries()` loops over all time points and returns a
+combined data frame suitable for trend visualization:
+
+```{r timeseries}
+result_ts <- ImmuPop_est_timeseries(
+  df_long        = df,
+  protect_c      = protect_c,
+  protect_a      = protect_a,
+  age_prop       = age_prop,
+  contact_matrix = contact_matrix,
+  sim_num        = 200,
+  seed           = 42
+)
+head(result_ts)
+```
+
+With many time points (>8), `plot_estimates()` automatically switches to a
+line plot with shaded 95% CI ribbon:
+
+```{r plot-timeseries, eval=FALSE}
+# Requires > 8 time points for line-plot mode
+plot_estimates(result_ts)
+```
+
+## Titer distribution plots
+
+Visualize the raw titer distribution across age groups:
+
+```{r plot-dist, fig.height=4}
+plot_titer_dist(df[df$time == 2, ], main = "Titer distribution (time 2)")
+```
+
+## Titer jitter plot
+
+Individual titers with GMT overlay and reference thresholds:
+
+```{r plot-jitter, fig.height=4}
+plot_titer_jitter(df[df$time == 2, ], main = "Time 2", seed = 1)
+```
+
+## Saving plots to PDF
+
+All plot functions accept a `file` argument for direct PDF export:
+
+```{r pdf-export, eval=FALSE}
+plot_estimates(result, file = "forest_plot.pdf")
+plot_titer_jitter(df[df$time == 1, ], file = "jitter.pdf")
+```

@@ -109,6 +109,13 @@ plot_estimates <- function(result,
   groups <- if (!is.null(group_col)) sort(unique(result[[group_col]])) else NULL
   n_groups <- if (!is.null(groups)) length(groups) else 1L
 
+  # Color palette for grouped display
+  group_colors <- if (n_groups > 1) {
+    grDevices::hcl.colors(n_groups, palette = "Dark 2")
+  } else {
+    "black"
+  }
+
   # Build row structure: list of list(type, label, ...)
   # type = "section" | "estimator" (sub-header) | "estimate" (data row)
   rows <- list()
@@ -124,7 +131,8 @@ plot_estimates <- function(result,
         label = est_labels[est], indent = 1,
         value = sub$value[1],
         lower = sub$CI_lwr[1],
-        upper = sub$CI_upr[1]
+        upper = sub$CI_upr[1],
+        color = "black"
       )
     } else {
       # Grouped: estimator label as sub-header, then one row per group
@@ -132,7 +140,8 @@ plot_estimates <- function(result,
         type = "subheader",
         label = est_labels[est]
       )
-      for (g in groups) {
+      for (gi in seq_along(groups)) {
+        g <- groups[gi]
         row_g <- sub[sub[[group_col]] == g, ]
         if (nrow(row_g) == 0) next
         rows[[length(rows) + 1]] <<- list(
@@ -140,7 +149,8 @@ plot_estimates <- function(result,
           label = paste0(group_label, " ", g), indent = 2,
           value = row_g$value[1],
           lower = row_g$CI_lwr[1],
-          upper = row_g$CI_upr[1]
+          upper = row_g$CI_upr[1],
+          color = group_colors[gi]
         )
       }
     }
@@ -264,15 +274,16 @@ plot_estimates <- function(result,
       } else {
         label_x + 1.5
       }
+      row_col <- if (!is.null(row$color)) row$color else "black"
       graphics::text(indent_x, y, row$label,
-                     adj = 0, font = 1, cex = cex)
+                     adj = 0, font = 1, cex = cex, col = row_col)
 
       # Point estimate and CI bar
       x_val <- .val_to_x(row$value, row$group)
       x_lo  <- .val_to_x(row$lower, row$group)
       x_hi  <- .val_to_x(row$upper, row$group)
-      graphics::segments(x_lo, y, x_hi, y, lwd = 1.5)
-      graphics::points(x_val, y, pch = 16, cex = 0.8)
+      graphics::segments(x_lo, y, x_hi, y, lwd = 2, col = row_col)
+      graphics::points(x_val, y, pch = 16, cex = 0.9, col = row_col)
 
       # Formatted estimate text (right-aligned)
       if (row$group == "prop") {
@@ -283,7 +294,7 @@ plot_estimates <- function(result,
                             row$value, row$lower, row$upper)
       }
       graphics::text(right_edge - 0.3, y, est_text,
-                     adj = 1, cex = cex * 0.9)
+                     adj = 1, cex = cex * 0.9, col = row_col)
     }
   }
 
@@ -303,6 +314,18 @@ plot_estimates <- function(result,
                         numeric(1))
     graphics::axis(1, at = ticks_x, labels = ticks_val,
                    pos = axis_y[["gmt"]], cex.axis = cex * 0.85)
+  }
+
+  # Legend for grouped (baseline/multi-epidemic) plots
+  if (n_groups > 1 && !is.null(groups)) {
+    legend_labels <- paste0(group_label, " ", groups)
+    graphics::legend("topright",
+                     legend = legend_labels,
+                     col    = group_colors,
+                     pch    = 16,
+                     lwd    = 2,
+                     bty    = "n",
+                     cex    = cex * 0.9)
   }
 
   invisible(NULL)
