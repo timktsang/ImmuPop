@@ -3,14 +3,14 @@ Type: Package
 Title: Estimating Population Immunity Using Individual Antibody Titers
 Version: 0.1.1
 Authors@R:
-    c(person(given = "Weijia",
+    c(person(given = "Tim",
+             family = "Tsang",
+             role = c("aut", "cre"),
+             email = "timkltsang@gmail.com"),
+      person(given = "Weijia",
              family = "Xiong",
              role = "aut",
-             email = "wjxiong@connect.hku.hk"),
-      person(given = "Tim",
-             family = "Tsang",
-             role = "cre",
-             email = "timkltsang@gmail.com"))
+             email = "wjxiong@connect.hku.hk"))
 Description: Estimate population immunity metrics from individual serology
     data, including geometric mean titer (GMT), proportion of non-naive
     individuals, population immune proportion, and relative reduction in
