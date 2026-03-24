@@ -4,7 +4,7 @@
 \alias{plot_estimates}
 \title{Plot immunity estimates}
 \usage{
-plot_estimates(result, file = NULL, width = 10, height = NULL, cex = 0.85, ...)
+plot_estimates(result, file = NULL, width = 10, height = NULL, cex = 0.85, col = NULL, ...)
 }
 \arguments{
 \item{result}{Data frame returned by \code{\link{ImmuPop_est_timepoint}},
@@ -23,6 +23,11 @@ automatically.}
 number of rows (forest) or number of estimators (timeseries).}
 
 \item{cex}{Base character expansion factor (default 0.85).}
+
+\item{col}{Optional color vector for groups (epidemics or time points).
+When \code{NULL} (the default), groups are colored automatically. For
+ungrouped (single time point) results this is ignored. Recycled if
+shorter than the number of groups.}
 
 \item{...}{Additional graphical parameters passed to \code{plot()}.}
 }

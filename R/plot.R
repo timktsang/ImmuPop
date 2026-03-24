@@ -35,6 +35,10 @@
 #' @param height PDF height in inches. If \code{NULL}, auto-sized from the
 #'   number of rows (forest) or number of estimators (timeseries).
 #' @param cex Base character expansion factor (default 0.85).
+#' @param col Optional color vector for groups (epidemics or time points).
+#'   When \code{NULL} (the default), groups are colored automatically. For
+#'   ungrouped (single time point) results this is ignored. Recycled if
+#'   shorter than the number of groups.
 #' @param ... Additional graphical parameters passed to \code{plot()}.
 #' @return Invisible \code{NULL}. Called for its side effect of producing plots.
 #' @examples
@@ -69,7 +73,7 @@
 #' @export
 plot_estimates <- function(result,
                            file = NULL, width = 10, height = NULL,
-                           cex = 0.85, ...) {
+                           cex = 0.85, col = NULL, ...) {
   if (!all(c("estimator", "value", "CI_lwr", "CI_upr") %in% names(result)))
     stop("'result' must have columns: estimator, value, CI_lwr, CI_upr. ",
          "Use the output of ImmuPop_est_timepoint(), ImmuPop_est_baseline(),",
@@ -110,10 +114,12 @@ plot_estimates <- function(result,
   n_groups <- if (!is.null(groups)) length(groups) else 1L
 
   # Color palette for grouped display
-  group_colors <- if (n_groups > 1) {
-    grDevices::hcl.colors(n_groups, palette = "Dark 2")
+  if (!is.null(col)) {
+    group_colors <- rep_len(col, n_groups)
+  } else if (n_groups > 1) {
+    group_colors <- grDevices::hcl.colors(n_groups, palette = "Dark 2")
   } else {
-    "black"
+    group_colors <- "black"
   }
 
   # Build row structure: list of list(type, label, ...)
