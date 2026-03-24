@@ -102,30 +102,28 @@ plot_estimates(res_bsl)
 
 <img src="man/figures/baseline.png" width="650"/>
 
+### Timeseries
+
+For time series results (many time points), `plot_estimates()` automatically switches to a multi-panel line plot with 95% CI ribbon. Gaps between survey rounds are detected and drawn as separate segments.
+
+```r
+res_ts <- ImmuPop_est_timeseries(df, protect_c, protect_a,
+                                  age_prop, contact_matrix,
+                                  sim_num = 500, seed = 42)
+plot_estimates(res_ts)
+```
+
+<img src="man/figures/timeseries.png" width="700"/>
+
 ## Estimation modes
 
-### All time points
+| Function | Input | Groups by |
+|----------|-------|-----------|
+| `ImmuPop_est_timepoint()` | Single time point subset | — (ungrouped) |
+| `ImmuPop_est_baseline()` | Baseline samples (`bsl == "yes"`) | Epidemic (`epi`) |
+| `ImmuPop_est_timeseries()` | Full longitudinal data | Time point (`time`) |
 
-Estimates immunity at every time point that contains all age groups:
-
-```r
-res_all <- ImmuPop_est_timeseries(df, protect_c, protect_a,
-                            age_prop, contact_matrix,
-                            sim_num = 500, seed = 42)
-head(res_all)
-```
-
-### Baseline (pre-epidemic)
-
-Compares baseline immunity across epidemic groups:
-
-```r
-df_bsl  <- df[df$bsl == "yes", ]
-res_bsl <- ImmuPop_est_baseline(df_bsl, protect_c, protect_a,
-                           age_prop, contact_matrix,
-                           sim_num = 500, seed = 42)
-res_bsl
-```
+All three return a data frame with columns `estimator`, `value`, `CI_lwr`, `CI_upr` (plus `epi` or `time` for grouped modes), and all work with `plot_estimates()`.
 
 ## Input data format
 

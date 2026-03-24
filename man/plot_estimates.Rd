@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.R
 \name{plot_estimates}
 \alias{plot_estimates}
-\title{Plot immunity estimates (forest plot)}
+\title{Plot immunity estimates}
 \usage{
 plot_estimates(result, file = NULL, width = 10, height = NULL, cex = 0.85, ...)
 }
@@ -20,7 +20,7 @@ automatically.}
 \item{width}{PDF width in inches (default 10).}
 
 \item{height}{PDF height in inches. If \code{NULL}, auto-sized from the
-number of rows.}
+number of rows (forest) or number of estimators (timeseries).}
 
 \item{cex}{Base character expansion factor (default 0.85).}
 
@@ -32,14 +32,18 @@ Invisible \code{NULL}. Called for its side effect of producing plots.
 \description{
 Visualizes estimates returned by any of the three estimation functions
 (\code{\link{ImmuPop_est_timepoint}}, \code{\link{ImmuPop_est_baseline}},
-\code{\link{ImmuPop_est_timeseries}}) as a forest plot.
+\code{\link{ImmuPop_est_timeseries}}).
 
-The function auto-detects the input type: if the data frame contains an
-\code{epi} or \code{time} column, rows are grouped by that variable under
-each estimator heading. The three proportion-scale metrics
-(\code{pop_immun}, \code{RR_R0}, \code{prop_5}) share a 0--1 x-axis;
-the geometric mean titer (\code{GMT}) is shown in a separate section
-with its own x-axis.
+The function auto-detects the input type:
+\itemize{
+  \item \strong{Timepoint / baseline} (no \code{time} column, or few groups):
+    forest plot. The three proportion-scale metrics share a 0--1 x-axis;
+    GMT is shown in a separate section with its own x-axis.
+  \item \strong{Timeseries} (\code{time} column with many levels):
+    multi-panel line plot with shaded 95\% CI ribbon, one panel per estimator.
+    Gaps between survey rounds are automatically detected and drawn as
+    separate segments.
+}
 }
 \examples{
 \donttest{
