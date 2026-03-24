@@ -8,18 +8,20 @@
   prop_5    = "Proportion seropositive (titer >= 10)"
 )
 
-#' Plot immunity estimates (forest plot)
+#' Plot immunity estimates
 #'
 #' Visualizes estimates returned by any of the three estimation functions
 #' (\code{\link{ImmuPop_est_timepoint}}, \code{\link{ImmuPop_est_baseline}},
-#' \code{\link{ImmuPop_est_timeseries}}) as a forest plot.
+#' \code{\link{ImmuPop_est_timeseries}}).
 #'
-#' The function auto-detects the input type: if the data frame contains an
-#' \code{epi} or \code{time} column, rows are grouped by that variable under
-#' each estimator heading. The three proportion-scale metrics
-#' (\code{pop_immun}, \code{RR_R0}, \code{prop_5}) share a 0--1 x-axis;
-#' the geometric mean titer (\code{GMT}) is shown in a separate section
-#' with its own x-axis.
+#' The function auto-detects the input type:
+#' \itemize{
+#'   \item \strong{Timepoint / baseline} (no \code{time} column, or few groups):
+#'     forest plot. The three proportion-scale metrics share a 0--1 x-axis;
+#'     GMT is shown in a separate section with its own x-axis.
+#'   \item \strong{Timeseries} (\code{time} column with many levels):
+#'     multi-panel line plot with shaded 95\% CI ribbon, one panel per estimator.
+#' }
 #'
 #' @param result Data frame returned by \code{\link{ImmuPop_est_timepoint}},
 #'   \code{\link{ImmuPop_est_baseline}}, or \code{\link{ImmuPop_est_timeseries}}. Must
@@ -31,7 +33,7 @@
 #'   automatically.
 #' @param width PDF width in inches (default 10).
 #' @param height PDF height in inches. If \code{NULL}, auto-sized from the
-#'   number of rows.
+#'   number of rows (forest) or number of estimators (timeseries).
 #' @param cex Base character expansion factor (default 0.85).
 #' @param ... Additional graphical parameters passed to \code{plot()}.
 #' @return Invisible \code{NULL}. Called for its side effect of producing plots.
@@ -72,6 +74,12 @@ plot_estimates <- function(result,
     stop("'result' must have columns: estimator, value, CI_lwr, CI_upr. ",
          "Use the output of ImmuPop_est_timepoint(), ImmuPop_est_baseline(),",
          "or ImmuPop_est_timeseries().", call. = FALSE)
+
+  # Dispatch: timeseries (many time points) -> line plot; otherwise -> forest
+  if ("time" %in% names(result) && length(unique(result$time)) > 8) {
+    return(.plot_estimates_timeseries(result, file = file, width = width,
+                                      height = height, cex = cex, ...))
+  }
 
   # Auto-detect grouping column
   group_col <- NULL
@@ -294,6 +302,101 @@ plot_estimates <- function(result,
                         numeric(1))
     graphics::axis(1, at = ticks_x, labels = ticks_val,
                    pos = axis_y[["gmt"]], cex.axis = cex * 0.85)
+  }
+
+  invisible(NULL)
+}
+
+# Internal: line + ribbon plot for timeseries estimates
+.plot_estimates_timeseries <- function(result, file = NULL, width = 10,
+                                       height = NULL, cex = 0.85, ...) {
+  est_labels <- c(
+    pop_immun = "Population immunity",
+    RR_R0     = "Relative reduction in R0",
+    prop_5    = "Proportion seropositive (\u2265 1:10)",
+    GMT       = "Geometric mean titer"
+  )
+  est_colors <- c(
+    pop_immun = "#2166AC",
+    RR_R0     = "#B2182B",
+    prop_5    = "#1B7837",
+    GMT       = "#E08214"
+  )
+
+  estimators <- intersect(c("pop_immun", "RR_R0", "prop_5", "GMT"),
+                          unique(result$estimator))
+  n_panels <- length(estimators)
+  if (n_panels == 0) return(invisible(NULL))
+
+  if (is.null(height)) height <- 2.5 * n_panels + 1
+
+  # Open PDF device if file specified
+  opened_device <- FALSE
+  if (!is.null(file)) {
+    grDevices::pdf(file, width = width, height = height)
+    opened_device <- TRUE
+  }
+
+  old_mar <- graphics::par("mar")
+  old_mgp <- graphics::par("mgp")
+  old_mfrow <- graphics::par("mfrow")
+  on.exit({
+    graphics::par(mar = old_mar, mgp = old_mgp, mfrow = old_mfrow)
+    if (opened_device) grDevices::dev.off()
+  })
+
+  graphics::par(mfrow = c(n_panels, 1),
+                mar = c(3.5, 4.5, 2, 1),
+                mgp = c(2.5, 0.7, 0))
+
+  # Split time vector into contiguous segments (break at large gaps)
+  .split_segments <- function(times) {
+    if (length(times) <= 1) return(list(seq_along(times)))
+    diffs <- diff(times)
+    # Gap threshold: median spacing * 3, or at least 10% of total range
+    threshold <- max(stats::median(diffs) * 3,
+                     diff(range(times)) * 0.1)
+    breaks <- which(diffs > threshold)
+    starts <- c(1L, breaks + 1L)
+    ends   <- c(breaks, length(times))
+    mapply(seq, starts, ends, SIMPLIFY = FALSE)
+  }
+
+  for (est in estimators) {
+    sub <- result[result$estimator == est, ]
+    sub <- sub[order(sub$time), ]
+    times <- sub$time
+
+    col_main <- est_colors[est]
+    col_fill <- grDevices::adjustcolor(col_main, alpha.f = 0.2)
+
+    # Y-axis range
+    y_lo <- min(sub$CI_lwr, na.rm = TRUE)
+    y_hi <- max(sub$CI_upr, na.rm = TRUE)
+    y_pad <- (y_hi - y_lo) * 0.1
+    ylim <- c(max(0, y_lo - y_pad), y_hi + y_pad)
+
+    graphics::plot(times, sub$value, type = "n",
+                   xlim = range(times), ylim = ylim,
+                   xlab = "Time", ylab = est_labels[est],
+                   main = est_labels[est],
+                   cex.main = cex * 1.1, cex.lab = cex, cex.axis = cex * 0.9,
+                   ...)
+
+    # Draw ribbon + line per contiguous segment (avoids interpolation across gaps)
+    segments <- .split_segments(times)
+    for (idx in segments) {
+      seg_t  <- times[idx]
+      seg_lo <- sub$CI_lwr[idx]
+      seg_hi <- sub$CI_upr[idx]
+      seg_v  <- sub$value[idx]
+
+      graphics::polygon(c(seg_t, rev(seg_t)),
+                        c(seg_lo, rev(seg_hi)),
+                        col = col_fill, border = NA)
+      graphics::lines(seg_t, seg_v, col = col_main, lwd = 1.5)
+    }
+    graphics::points(times, sub$value, pch = 16, col = col_main, cex = 0.5)
   }
 
   invisible(NULL)
