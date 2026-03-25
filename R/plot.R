@@ -238,7 +238,9 @@ plot_estimates <- function(result,
   }
 
   y_top    <- total_units + 1.5
-  y_bottom <- min(unlist(axis_y)) - 1.2
+  # Extra bottom space for horizontal legend when grouped
+  legend_pad <- if (n_groups > 1) 2.5 else 1.2
+  y_bottom <- min(unlist(axis_y)) - legend_pad
 
   graphics::plot(0, 0, type = "n",
                  xlim = c(label_x, right_edge),
@@ -322,16 +324,22 @@ plot_estimates <- function(result,
                    pos = axis_y[["gmt"]], cex.axis = cex * 0.85)
   }
 
-  # Legend for grouped (baseline/multi-epidemic) plots
+  # Legend for grouped (baseline/multi-epidemic) plots — bottom, horizontal
   if (n_groups > 1 && !is.null(groups)) {
     legend_labels <- paste0(group_label, " ", groups)
-    graphics::legend("topright",
+    # Place legend centered at the bottom of the plot, horizontal layout
+    legend_x <- (label_x + right_edge) / 2
+    legend_y <- y_bottom + 0.3
+    graphics::legend(legend_x, legend_y,
                      legend = legend_labels,
                      col    = group_colors,
                      pch    = 16,
                      lwd    = 2,
                      bty    = "n",
-                     cex    = cex * 0.9)
+                     cex    = cex * 0.9,
+                     horiz  = TRUE,
+                     xjust  = 0.5,
+                     yjust  = 1)
   }
 
   invisible(NULL)
