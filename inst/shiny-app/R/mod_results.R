@@ -104,11 +104,9 @@ results_server <- function(id, rv, parent_session) {
       df <- rv$processed_data
       if ("time" %in% names(df)) {
         times <- sort(unique(df$time))
-        # Default to time==2 (matching README example) if available
-        default_time <- if ("2" %in% as.character(times)) "2" else as.character(times[1])
         shiny::selectInput(ns("selected_time"), "Select time point",
                            choices = c("All data" = "all", as.character(times)),
-                           selected = default_time)
+                           selected = "all")
       }
     })
 

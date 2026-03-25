@@ -76,19 +76,18 @@ protect_a      <- c(0.1, 0.2, 0.3, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75)
 
 ### Step 4: Estimate immunity
 
-Select a single time point from your data and run the estimation. `sim_num` controls the number of bootstrap simulations (higher = more precise CIs). Use `seed` for reproducible results.
+Run the estimation on your data. `sim_num` controls the number of bootstrap simulations (higher = more precise CIs). Use `seed` for reproducible results. You can also filter to a single time point with `df[df$time == 2, ]` if your data has multiple survey rounds.
 
 ```r
-data_t <- df[df$time == 2, ]
-result <- ImmuPop_est_timepoint(data_t, protect_c, protect_a,
+result <- ImmuPop_est_timepoint(df, protect_c, protect_a,
                             age_prop, contact_matrix,
                             sim_num = 1000, seed = 42)
 result
-#>   estimator     value    CI_lwr     CI_upr
-#> 1 pop_immun 0.2180654 0.1598600  0.3537494
-#> 2     RR_R0 0.2311639 0.1555847  0.3595227
-#> 3       GMT 6.1849899 3.0924949 10.2891499
-#> 4    prop_5 0.3000000 0.1000000  0.6000000
+#>   estimator      value     CI_lwr     CI_upr
+#> 1 pop_immun  0.4572028  0.4369597  0.4750102
+#> 2     RR_R0  0.4585540  0.4413853  0.4752686
+#> 3       GMT 64.1036654 55.9251447 73.8310285
+#> 4    prop_5  0.8906180  0.8633645  0.9139589
 ```
 
 ## Visualization
@@ -120,13 +119,12 @@ plot_titer_dist(df, main = "Titer distribution by age group")
 
 <img src="man/figures/titer_dist.png" width="700"/>
 
-### Immunity estimates (single time point)
+### Immunity estimates
 
-Estimate population immunity from a single survey round — e.g. a cross-sectional serosurvey at one point in time. This gives a snapshot of how immune the population is right now.
+Estimate population immunity from serology data. This gives a snapshot of how immune the population is.
 
 ```r
-data_t <- df[df$time == 2, ]
-result <- ImmuPop_est_timepoint(data_t, protect_c, protect_a,
+result <- ImmuPop_est_timepoint(df, protect_c, protect_a,
                             age_prop, contact_matrix,
                             sim_num = 1000, seed = 42)
 plot_estimates(result)
