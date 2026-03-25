@@ -26,6 +26,8 @@ Imports:
     dplyr,
     MCMCpack
 Suggests:
+    shiny (>= 1.7.0),
+    DT,
     testthat (>= 3.0.0),
     knitr,
     rmarkdown

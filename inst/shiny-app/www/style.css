@@ -1,0 +1,31 @@
+/* ImmuPop Shiny App — minimal custom styles */
+
+.navbar-brand {
+  font-weight: bold;
+}
+
+.badge {
+  font-size: 0.9em;
+  margin-right: 4px;
+  padding: 4px 8px;
+}
+
+.bg-success { background-color: #28a745 !important; }
+.bg-danger  { background-color: #dc3545 !important; }
+.bg-secondary { background-color: #6c757d !important; }
+
+.well {
+  margin-bottom: 15px;
+}
+
+.btn-lg {
+  margin-top: 10px;
+}
+
+.text-success { color: #28a745; }
+.text-danger  { color: #dc3545; }
+
+/* Compact numeric inputs in matrix grid */
+.shiny-input-container .form-control[type="number"] {
+  padding: 4px 8px;
+}

@@ -14,7 +14,6 @@
   - `ImmuPop_timet_est()` → `ImmuPop_est_timepoint()`
   - `ImmuPop_bsl_est()` → `ImmuPop_est_baseline()`
   - `ImmuPop_timeseries_est()` → `ImmuPop_est_timeseries()`
-  Old names are retained as deprecated aliases.
 
 * Added `seed` parameter to all three estimation functions for reproducible
   bootstrap/MCMC sampling.
