@@ -26,13 +26,18 @@ devtools::install_github("timktsang/ImmuPop")
 
 ## Interactive web app
 
-No R experience needed — run ImmuPop directly in your browser:
+No R experience needed — try ImmuPop directly in your browser:
+
+**[Launch ImmuPop Web App](https://timktsang.shinyapps.io/ImmuPop/)**
+
+Upload a CSV, configure parameters via the web interface, and download results. See [Input data format](#input-data-format) for the required CSV columns.
+
+To run the app locally instead:
 
 ```r
+install.packages(c("shiny", "DT"))
 ImmuPop::launch_app()
 ```
-
-Upload a CSV, configure parameters via the web interface, and download results. See [Input data format](#input-data-format) for the required CSV columns. Install extra dependencies first: `install.packages(c("shiny", "DT"))`.
 
 ## Quick start
 
