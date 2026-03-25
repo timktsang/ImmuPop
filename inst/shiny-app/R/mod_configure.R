@@ -186,8 +186,13 @@ configure_server <- function(id, rv, parent_session) {
       n_levels <- length(levels)
       # Standard HAI labels
       titer_labels <- c("<10", "10", "20", "40", "80", "160", "320", ">=640")
-      # Default: linear ramp
-      defaults <- seq(0.1, 0.5, length.out = n_levels)
+      # Default: matching README example (9 levels from bundled data)
+      readme_defaults <- c(0.1, 0.2, 0.3, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75)
+      defaults <- if (n_levels <= length(readme_defaults)) {
+        readme_defaults[seq_len(n_levels)]
+      } else {
+        c(readme_defaults, seq(0.8, 0.95, length.out = n_levels - length(readme_defaults)))
+      }
       if (n_levels > length(titer_labels)) {
         titer_labels <- c(titer_labels,
                           paste0("Level ", (length(titer_labels) + 1):n_levels))

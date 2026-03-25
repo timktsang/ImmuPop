@@ -70,8 +70,8 @@ These parameters describe the **target population**, not your sample:
 age_prop       <- c(0.2, 0.4, 0.4)
 contact_matrix <- matrix(c(22, 16, 15, 24, 28, 30, 18, 32, 35),
                          nrow = 3, byrow = TRUE)
-protect_c      <- c(0.1, 0.2, 0.3, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8)
-protect_a      <- c(0.1, 0.2, 0.3, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8)
+protect_c      <- c(0.1, 0.2, 0.3, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75)
+protect_a      <- c(0.1, 0.2, 0.3, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75)
 ```
 
 ### Step 4: Estimate immunity
@@ -85,8 +85,8 @@ result <- ImmuPop_est_timepoint(data_t, protect_c, protect_a,
                             sim_num = 1000, seed = 42)
 result
 #>   estimator     value    CI_lwr     CI_upr
-#> 1 pop_immun 0.2241593 0.1621655  0.3549945
-#> 2     RR_R0 0.2364441 0.1619552  0.3667163
+#> 1 pop_immun 0.2180654 0.1598600  0.3537494
+#> 2     RR_R0 0.2311639 0.1555847  0.3595227
 #> 3       GMT 6.1849899 3.0924949 10.2891499
 #> 4    prop_5 0.3000000 0.1000000  0.6000000
 ```
