@@ -251,10 +251,8 @@ plot_estimates <- function(result,
   header_y <- total_units + 0.8
   graphics::text(label_x + 0.3, header_y, "Estimator",
                  adj = 0, font = 2, cex = cex)
-  graphics::text(right_edge - 0.3, header_y, "Estimate",
+  graphics::text(right_edge - 0.3, header_y, "Estimate (95% CI)",
                  adj = 1, font = 2, cex = cex)
-  graphics::text(right_edge - 0.3, header_y - 0.5, "(95% CI)",
-                 adj = 1, cex = cex * 0.85)
 
   # Draw rows
   for (i in seq_len(n_rows)) {
