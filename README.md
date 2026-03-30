@@ -204,7 +204,18 @@ The number of values in `protect_c` and `protect_a` must match the number of dis
 
 ## Citation
 
-Xiong W, et al. A Framework for Measuring Population Immunity Against Influenza Using Individual Antibody Titers. *(in preparation)*
+If you use ImmuPop, please cite the paper:
+
+> Xiong W, Tsang TK, et al. A Framework for Measuring Population Immunity Against Influenza Using Individual Antibody Titers. *The Lancet Infectious Diseases* (accepted).
+
+For the exact code used in the publication, see [Release v1.0-paper](https://github.com/timktsang/ImmuPop/releases/tag/v1.0-paper).
+
+A `CITATION.cff` file is included for automated citation tools.
+
+## Authorship
+
+Originally created by [Weijia Xiong](https://github.com/wjxiong5633) for the publication above.
+Current maintenance and extended functionality by [Tim K. Tsang](https://github.com/timktsang).
 
 ## Development
 

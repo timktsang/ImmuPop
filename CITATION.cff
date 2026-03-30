@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+title: "ImmuPop: Estimating Population Immunity Using Individual Antibody Titers"
+message: "If you use this software, please cite both the paper and the software."
+type: software
+license: MIT
+repository-code: "https://github.com/timktsang/ImmuPop"
+authors:
+  - family-names: Xiong
+    given-names: Weijia
+  - family-names: Tsang
+    given-names: Tim K.
+    email: timkltsang@gmail.com
+
+preferred-citation:
+  type: article
+  title: "A Framework for Measuring Population Immunity Against Influenza Using Individual Antibody Titers"
+  authors:
+    - family-names: Xiong
+      given-names: Weijia
+    - family-names: Tsang
+      given-names: Tim K.
+  journal: "The Lancet Infectious Diseases"
+  status: "accepted"
+  year: 2025
